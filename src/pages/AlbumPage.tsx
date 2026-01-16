@@ -1,0 +1,180 @@
+import { useState } from "react";
+import { Plus, Trash2, Search } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { Album, Figurina } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function AlbumPage() {
+  const [album, setAlbum] = useLocalStorage<Album[]>("album", []);
+  const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newAlbum, setNewAlbum] = useState({
+    nome: "",
+    anno: new Date().getFullYear(),
+  });
+
+  const filteredAlbum = album.filter((a) =>
+    a.nome.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAdd = () => {
+    if (!newAlbum.nome.trim()) return;
+    
+    const albumItem: Album = {
+      id: crypto.randomUUID(),
+      nome: newAlbum.nome.trim(),
+      anno: newAlbum.anno,
+      createdAt: new Date(),
+    };
+    
+    setAlbum([...album, albumItem]);
+    setNewAlbum({ nome: "", anno: new Date().getFullYear() });
+    setIsDialogOpen(false);
+  };
+
+  const handleDelete = (id: string) => {
+    setAlbum(album.filter((a) => a.id !== id));
+    // Rimuovi anche le figurine associate
+    setFigurine(figurine.filter((f) => f.albumId !== id));
+  };
+
+  const getFigurineCount = (albumId: string) => {
+    return figurine.filter((f) => f.albumId === albumId).length;
+  };
+
+  return (
+    <>
+      <AppHeader title="Gestione Album" breadcrumb="Album" />
+      <PageHeader title="Album" />
+      
+      <div className="flex-1 p-6 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Archivio Album</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Cerca album..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button variant="default" size="icon">
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>Contenuti ({filteredAlbum.length} elementi)</CardTitle>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Aggiungi Album
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Anno</TableHead>
+                  <TableHead>Figurine</TableHead>
+                  <TableHead className="text-right">Azioni</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAlbum.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessun album trovato
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAlbum.map((albumItem) => (
+                    <TableRow key={albumItem.id}>
+                      <TableCell className="font-medium">{albumItem.nome}</TableCell>
+                      <TableCell>{albumItem.anno}</TableCell>
+                      <TableCell>{getFigurineCount(albumItem.id)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(albumItem.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aggiungi Album</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome</Label>
+              <Input
+                id="nome"
+                value={newAlbum.nome}
+                onChange={(e) => setNewAlbum({ ...newAlbum, nome: e.target.value })}
+                placeholder="Nome album"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="anno">Anno</Label>
+              <Input
+                id="anno"
+                type="number"
+                value={newAlbum.anno}
+                onChange={(e) => setNewAlbum({ ...newAlbum, anno: parseInt(e.target.value) || new Date().getFullYear() })}
+                placeholder="Anno"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Annulla
+            </Button>
+            <Button onClick={handleAdd} disabled={!newAlbum.nome.trim()}>
+              Aggiungi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
