@@ -46,9 +46,9 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">FG</span>
+            <span className="text-primary-foreground font-bold text-lg">AD</span>
           </div>
-          <span className="font-semibold text-sidebar-foreground">Figurine Manager</span>
+          <span className="font-semibold text-sidebar-foreground">Album Digitale</span>
         </div>
       </SidebarHeader>
       
