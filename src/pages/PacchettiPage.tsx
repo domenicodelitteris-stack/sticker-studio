@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { Pencil, Trash2, QrCode, Search } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -26,9 +29,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, QrCode } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,7 +48,12 @@ export default function PacchettiPage() {
   const [dialogType, setDialogType] = useState<"Statico" | "Dinamico">("Statico");
   const [editingPacchetto, setEditingPacchetto] = useState<Pacchetto | null>(null);
   const [formData, setFormData] = useState({ nome: "", numFigurine: 1 });
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+
+  const filteredPacchetti = pacchetti.filter((p) =>
+    p.nome.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const openCreateDialog = (tipo: "Statico" | "Dinamico") => {
     setDialogType(tipo);
@@ -120,81 +127,115 @@ export default function PacchettiPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      <PageHeader title="Gestione Pacchetti" />
+    <>
+      <AppHeader title="Gestione Pacchetti" breadcrumb="Pacchetti" />
+      <PageHeader title="Pacchetti" />
       
-      <div className="p-6 flex-1">
-        <div className="flex gap-4 mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => openCreateDialog("Statico")}
-            className="border-2"
-          >
-            Crea pacchetto statico
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => openCreateDialog("Dinamico")}
-            className="border-2"
-          >
-            Crea pacchetto dinamico
-          </Button>
-        </div>
+      <div className="flex-1 p-6 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Creazione Pacchetti</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => openCreateDialog("Statico")}
+                className="border-2"
+              >
+                Crea pacchetto statico
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => openCreateDialog("Dinamico")}
+                className="border-2"
+              >
+                Crea pacchetto dinamico
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-card rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>N° figurine</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pacchetti.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Archivio Pacchetti</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Cerca pacchetti..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button variant="default" size="icon">
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Contenuti ({filteredPacchetti.length} elementi)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    Nessun pacchetto presente. Crea il tuo primo pacchetto!
-                  </TableCell>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>N° figurine</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
-              ) : (
-                pacchetti.map((pacchetto) => (
-                  <TableRow key={pacchetto.id}>
-                    <TableCell className="font-medium">{pacchetto.nome}</TableCell>
-                    <TableCell>{pacchetto.numFigurine}</TableCell>
-                    <TableCell>{pacchetto.tipo}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(pacchetto)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(pacchetto.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleGenerateQR(pacchetto)}
-                        >
-                          <QrCode className="h-4 w-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {filteredPacchetti.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessun pacchetto trovato. Crea il tuo primo pacchetto!
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  filteredPacchetti.map((pacchetto) => (
+                    <TableRow key={pacchetto.id}>
+                      <TableCell className="font-medium">{pacchetto.nome}</TableCell>
+                      <TableCell>{pacchetto.numFigurine}</TableCell>
+                      <TableCell>{pacchetto.tipo}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(pacchetto)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(pacchetto.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleGenerateQR(pacchetto)}
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dialog per creare/modificare pacchetto */}
@@ -252,6 +293,6 @@ export default function PacchettiPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }
