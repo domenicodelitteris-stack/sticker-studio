@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2, Search, Pencil } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Plus, Trash2, Pencil, ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -31,45 +32,44 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Figurina, Album } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function FigurinePage() {
+export default function AlbumConfigPage() {
+  const { albumId } = useParams<{ albumId: string }>();
+  const navigate = useNavigate();
+  const [albums] = useLocalStorage<Album[]>("album", []);
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
-  const [album] = useLocalStorage<Album[]>("album", []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFigurina, setEditingFigurina] = useState<Figurina | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [newFigurina, setNewFigurina] = useState({
     nome: "",
     tipo: "Standard" as "Standard" | "Speciale",
     frequenza: 5,
-    albumId: "",
   });
 
-  const filteredFigurine = figurine.filter((f) =>
-    f.nome.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const album = albums.find((a) => a.id === albumId);
+  const albumFigurine = figurine.filter((f) => f.albumId === albumId);
 
-  const getNextNumero = (albumId: string) => {
-    const albumFigurine = figurine.filter((f) => f.albumId === albumId);
+  // Calcola il prossimo numero disponibile
+  const getNextNumero = () => {
     const numeri = albumFigurine.map((f) => f.numero);
     if (numeri.length === 0) return 1;
     return Math.max(...numeri) + 1;
   };
 
   const handleAdd = () => {
-    if (!newFigurina.nome.trim() || !newFigurina.albumId) return;
+    if (!newFigurina.nome.trim() || !albumId) return;
 
     const figurina: Figurina = {
       id: crypto.randomUUID(),
       nome: newFigurina.nome.trim(),
-      numero: getNextNumero(newFigurina.albumId),
+      numero: getNextNumero(),
       tipo: newFigurina.tipo,
       frequenza: newFigurina.frequenza,
-      albumId: newFigurina.albumId,
+      albumId: albumId,
       createdAt: new Date(),
     };
 
     setFigurine([...figurine, figurina]);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "" });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
     setIsDialogOpen(false);
   };
 
@@ -84,13 +84,12 @@ export default function FigurinePage() {
               nome: newFigurina.nome.trim(),
               tipo: newFigurina.tipo,
               frequenza: newFigurina.frequenza,
-              albumId: newFigurina.albumId,
             }
           : f
       )
     );
     setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "" });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
     setIsDialogOpen(false);
   };
 
@@ -104,57 +103,75 @@ export default function FigurinePage() {
       nome: figurina.nome,
       tipo: figurina.tipo,
       frequenza: figurina.frequenza,
-      albumId: figurina.albumId,
     });
     setIsDialogOpen(true);
   };
 
   const openAddDialog = () => {
     setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "" });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
     setIsDialogOpen(true);
   };
 
-  const getAlbumName = (albumId: string) => {
-    const a = album.find((a) => a.id === albumId);
-    return a?.nome || "N/A";
-  };
+  if (!album) {
+    return (
+      <>
+        <AppHeader title="Configurazione Album" breadcrumb="Album > Configurazione" />
+        <PageHeader title="Album non trovato" />
+        <div className="flex-1 p-6">
+          <Button onClick={() => navigate("/album")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna agli Album
+          </Button>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <AppHeader title="Gestione Figurine" breadcrumb="Figurine" />
-      <PageHeader title="Figurine" />
-      
+      <AppHeader title="Configurazione Album" breadcrumb={`Album > ${album.nome}`} />
+      <PageHeader title={`Configurazione: ${album.nome}`} />
+
       <div className="flex-1 p-6 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Archivio Figurine</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Cerca figurina..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button variant="default" size="icon">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => navigate("/album")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Torna agli Album
+          </Button>
+        </div>
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Contenuti ({filteredFigurine.length} elementi)</CardTitle>
+            <CardTitle>Figurine ({albumFigurine.length} elementi)</CardTitle>
             <Button onClick={openAddDialog}>
               <Plus className="h-4 w-4 mr-2" />
-              Aggiungi Figurina
+              Inserisci figurina
             </Button>
           </CardHeader>
           <CardContent>
+            {/* Griglia visiva delle figurine */}
+            <div className="grid grid-cols-5 gap-4 mb-6">
+              {albumFigurine.map((figurina) => (
+                <div
+                  key={figurina.id}
+                  className="aspect-[3/4] border-2 border-yellow-500 rounded-lg flex items-center justify-center bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => openEditDialog(figurina)}
+                >
+                  <div className="text-center p-2">
+                    <div className="font-bold text-lg">{figurina.numero}</div>
+                    <div className="text-xs text-muted-foreground truncate">{figurina.nome}</div>
+                  </div>
+                </div>
+              ))}
+              {albumFigurine.length === 0 && (
+                <div className="col-span-5 text-center text-muted-foreground py-8">
+                  Nessuna figurina inserita. Clicca "Inserisci figurina" per iniziare.
+                </div>
+              )}
+            </div>
+
+            {/* Tabella dettagliata */}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -166,14 +183,14 @@ export default function FigurinePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredFigurine.length === 0 ? (
+                {albumFigurine.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Nessuna figurina trovata
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredFigurine.map((figurina) => (
+                  albumFigurine.map((figurina) => (
                     <TableRow key={figurina.id}>
                       <TableCell className="font-medium">{figurina.numero}</TableCell>
                       <TableCell>{figurina.nome}</TableCell>
@@ -209,7 +226,7 @@ export default function FigurinePage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingFigurina ? "Modifica Figurina" : "Aggiungi Figurina"}
+              {editingFigurina ? "Modifica Figurina" : "Inserisci Figurina"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -255,30 +272,9 @@ export default function FigurinePage() {
                 }
                 placeholder="Frequenza"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="album">Album</Label>
-              <Select
-                value={newFigurina.albumId}
-                onValueChange={(value) => setNewFigurina({ ...newFigurina, albumId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona album" />
-                </SelectTrigger>
-                <SelectContent>
-                  {album.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      Nessun album disponibile
-                    </SelectItem>
-                  ) : (
-                    album.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.nome}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <p className="text-xs text-muted-foreground">
+                Indica quante volte su 10 questa figurina può uscire
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -287,9 +283,9 @@ export default function FigurinePage() {
             </Button>
             <Button
               onClick={editingFigurina ? handleEdit : handleAdd}
-              disabled={!newFigurina.nome.trim() || !newFigurina.albumId}
+              disabled={!newFigurina.nome.trim()}
             >
-              {editingFigurina ? "Salva" : "Aggiungi"}
+              {editingFigurina ? "Salva" : "Inserisci"}
             </Button>
           </DialogFooter>
         </DialogContent>
