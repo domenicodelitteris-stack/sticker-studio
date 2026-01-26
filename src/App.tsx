@@ -7,6 +7,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import FigurinePage from "./pages/FigurinePage";
 import AlbumPage from "./pages/AlbumPage";
+import AlbumConfigPage from "./pages/AlbumConfigPage";
 import PacchettiPage from "./pages/PacchettiPage";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/figurine" element={<FigurinePage />} />
             <Route path="/album" element={<AlbumPage />} />
+            <Route path="/album/:albumId" element={<AlbumConfigPage />} />
             <Route path="/pacchetti" element={<PacchettiPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />

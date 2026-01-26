@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Trash2, Search, Pencil } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import { Album, Figurina } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AlbumPage() {
+  const navigate = useNavigate();
   const [album, setAlbum] = useLocalStorage<Album[]>("album", []);
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -120,7 +122,14 @@ export default function AlbumPage() {
                       <TableCell className="font-medium">{albumItem.nome}</TableCell>
                       <TableCell>{albumItem.anno}</TableCell>
                       <TableCell>{getFigurineCount(albumItem.id)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/album/${albumItem.id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
