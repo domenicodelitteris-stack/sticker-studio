@@ -1,4 +1,4 @@
-import { Book, Image, ChevronDown } from "lucide-react";
+import { Book, Image, ChevronDown, Package } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -30,6 +30,11 @@ const menuItems = [
     icon: Book,
     url: "/album",
   },
+  {
+    title: "Gestione Pacchetti",
+    icon: Package,
+    url: "/pacchetti",
+  },
 ];
 
 export function AppSidebar() {
@@ -37,6 +42,7 @@ export function AppSidebar() {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     figurine: true,
     album: true,
+    pacchetti: true,
   });
 
   const isActive = (path: string) => location.pathname === path;
