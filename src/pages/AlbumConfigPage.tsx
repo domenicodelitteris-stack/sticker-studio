@@ -21,6 +21,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -38,6 +48,7 @@ export default function AlbumConfigPage() {
   const [albums] = useLocalStorage<Album[]>("album", []);
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingFigurina, setEditingFigurina] = useState<Figurina | null>(null);
   const [newFigurina, setNewFigurina] = useState({
     nome: "",
@@ -93,8 +104,10 @@ export default function AlbumConfigPage() {
     setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setFigurine(figurine.filter((f) => f.id !== id));
+  const handleDelete = () => {
+    if (!deleteId) return;
+    setFigurine(figurine.filter((f) => f.id !== deleteId));
+    setDeleteId(null);
   };
 
   const openEditDialog = (figurina: Figurina) => {
@@ -207,7 +220,7 @@ export default function AlbumConfigPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(figurina.id)}
+                          onClick={() => setDeleteId(figurina.id)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -290,6 +303,21 @@ export default function AlbumConfigPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare questa figurina? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

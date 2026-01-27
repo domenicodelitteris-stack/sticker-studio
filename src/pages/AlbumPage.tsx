@@ -20,6 +20,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Album, Figurina } from "@/types";
@@ -30,6 +40,7 @@ export default function AlbumPage() {
   const [album, setAlbum] = useLocalStorage<Album[]>("album", []);
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [newAlbum, setNewAlbum] = useState({
     nome: "",
@@ -55,10 +66,12 @@ export default function AlbumPage() {
     setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setAlbum(album.filter((a) => a.id !== id));
+  const handleDelete = () => {
+    if (!deleteId) return;
+    setAlbum(album.filter((a) => a.id !== deleteId));
     // Rimuovi anche le figurine associate
-    setFigurine(figurine.filter((f) => f.albumId !== id));
+    setFigurine(figurine.filter((f) => f.albumId !== deleteId));
+    setDeleteId(null);
   };
 
   const getFigurineCount = (albumId: string) => {
@@ -133,7 +146,7 @@ export default function AlbumPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(albumItem.id)}
+                          onClick={() => setDeleteId(albumItem.id)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -184,6 +197,21 @@ export default function AlbumPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare questo album? Verranno eliminate anche tutte le figurine associate. Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
