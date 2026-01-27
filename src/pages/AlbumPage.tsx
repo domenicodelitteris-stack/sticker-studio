@@ -32,8 +32,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Album, Figurina } from "@/types";
+import { Album, Figurina, DEFAULT_SYNDICATION } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 
 export default function AlbumPage() {
   const navigate = useNavigate();
@@ -58,6 +59,7 @@ export default function AlbumPage() {
       id: crypto.randomUUID(),
       nome: newAlbum.nome.trim(),
       anno: newAlbum.anno,
+      syndication: [...DEFAULT_SYNDICATION],
       createdAt: new Date(),
     };
     
@@ -119,13 +121,14 @@ export default function AlbumPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Anno</TableHead>
                   <TableHead>Figurine</TableHead>
+                  <TableHead>Syndication</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAlbum.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Nessun album trovato
                     </TableCell>
                   </TableRow>
@@ -135,6 +138,9 @@ export default function AlbumPage() {
                       <TableCell className="font-medium">{albumItem.nome}</TableCell>
                       <TableCell>{albumItem.anno}</TableCell>
                       <TableCell>{getFigurineCount(albumItem.id)}</TableCell>
+                      <TableCell>
+                        <SyndicationStatusIcons syndication={albumItem.syndication || DEFAULT_SYNDICATION} />
+                      </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button
                           variant="ghost"

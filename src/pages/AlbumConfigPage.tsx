@@ -39,8 +39,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Figurina, Album } from "@/types";
+import { Figurina, Album, DEFAULT_SYNDICATION, SyndicationPlatform } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SyndicationSection } from "@/components/SyndicationSection";
+import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function AlbumConfigPage() {
   const { albumId } = useParams<{ albumId: string }>();
@@ -54,6 +57,7 @@ export default function AlbumConfigPage() {
     nome: "",
     tipo: "Standard" as "Standard" | "Speciale",
     frequenza: 5,
+    syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
   });
 
   const album = albums.find((a) => a.id === albumId);
@@ -76,11 +80,12 @@ export default function AlbumConfigPage() {
       tipo: newFigurina.tipo,
       frequenza: newFigurina.frequenza,
       albumId: albumId,
+      syndication: newFigurina.syndication,
       createdAt: new Date(),
     };
 
     setFigurine([...figurine, figurina]);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, syndication: [...DEFAULT_SYNDICATION] });
     setIsDialogOpen(false);
   };
 
@@ -95,12 +100,13 @@ export default function AlbumConfigPage() {
               nome: newFigurina.nome.trim(),
               tipo: newFigurina.tipo,
               frequenza: newFigurina.frequenza,
+              syndication: newFigurina.syndication,
             }
           : f
       )
     );
     setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, syndication: [...DEFAULT_SYNDICATION] });
     setIsDialogOpen(false);
   };
 
@@ -116,13 +122,14 @@ export default function AlbumConfigPage() {
       nome: figurina.nome,
       tipo: figurina.tipo,
       frequenza: figurina.frequenza,
+      syndication: figurina.syndication || [...DEFAULT_SYNDICATION],
     });
     setIsDialogOpen(true);
   };
 
   const openAddDialog = () => {
     setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5 });
+    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, syndication: [...DEFAULT_SYNDICATION] });
     setIsDialogOpen(true);
   };
 
@@ -192,13 +199,14 @@ export default function AlbumConfigPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Frequenza</TableHead>
+                  <TableHead>Syndication</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {albumFigurine.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nessuna figurina trovata
                     </TableCell>
                   </TableRow>
@@ -209,6 +217,9 @@ export default function AlbumConfigPage() {
                       <TableCell>{figurina.nome}</TableCell>
                       <TableCell>{figurina.tipo}</TableCell>
                       <TableCell>{figurina.frequenza}/10</TableCell>
+                      <TableCell>
+                        <SyndicationStatusIcons syndication={figurina.syndication || DEFAULT_SYNDICATION} />
+                      </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button
                           variant="ghost"
@@ -242,54 +253,61 @@ export default function AlbumConfigPage() {
               {editingFigurina ? "Modifica Figurina" : "Inserisci Figurina"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome</Label>
-              <Input
-                id="nome"
-                value={newFigurina.nome}
-                onChange={(e) => setNewFigurina({ ...newFigurina, nome: e.target.value })}
-                placeholder="Nome figurina"
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 py-4 pr-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome</Label>
+                <Input
+                  id="nome"
+                  value={newFigurina.nome}
+                  onChange={(e) => setNewFigurina({ ...newFigurina, nome: e.target.value })}
+                  placeholder="Nome figurina"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select
+                  value={newFigurina.tipo}
+                  onValueChange={(value: "Standard" | "Speciale") =>
+                    setNewFigurina({ ...newFigurina, tipo: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Standard">Standard</SelectItem>
+                    <SelectItem value="Speciale">Speciale</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="frequenza">Frequenza (X/10)</Label>
+                <Input
+                  id="frequenza"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={newFigurina.frequenza}
+                  onChange={(e) =>
+                    setNewFigurina({
+                      ...newFigurina,
+                      frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
+                    })
+                  }
+                  placeholder="Frequenza"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Indica quante volte su 10 questa figurina può uscire
+                </p>
+              </div>
+
+              <SyndicationSection
+                syndication={newFigurina.syndication}
+                onChange={(syndication) => setNewFigurina({ ...newFigurina, syndication })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo</Label>
-              <Select
-                value={newFigurina.tipo}
-                onValueChange={(value: "Standard" | "Speciale") =>
-                  setNewFigurina({ ...newFigurina, tipo: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Standard">Standard</SelectItem>
-                  <SelectItem value="Speciale">Speciale</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="frequenza">Frequenza (X/10)</Label>
-              <Input
-                id="frequenza"
-                type="number"
-                min={1}
-                max={10}
-                value={newFigurina.frequenza}
-                onChange={(e) =>
-                  setNewFigurina({
-                    ...newFigurina,
-                    frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
-                  })
-                }
-                placeholder="Frequenza"
-              />
-              <p className="text-xs text-muted-foreground">
-                Indica quante volte su 10 questa figurina può uscire
-              </p>
-            </div>
-          </div>
+          </ScrollArea>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annulla

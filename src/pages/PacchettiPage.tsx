@@ -31,23 +31,24 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-
-interface Pacchetto {
-  id: string;
-  nome: string;
-  numFigurine: number;
-  tipo: "Statico" | "Dinamico";
-}
+import { Pacchetto, DEFAULT_SYNDICATION, SyndicationPlatform } from "@/types";
+import { SyndicationSection } from "@/components/SyndicationSection";
+import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 
 export default function PacchettiPage() {
   const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>("pacchetti", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"Statico" | "Dinamico">("Statico");
+  const [dialogType, setDialogType] = useState<"statico" | "dinamico">("statico");
   const [editingPacchetto, setEditingPacchetto] = useState<Pacchetto | null>(null);
-  const [formData, setFormData] = useState({ nome: "", numFigurine: 1 });
+  const [formData, setFormData] = useState({
+    nome: "",
+    numFigurine: 1,
+    syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
@@ -55,17 +56,21 @@ export default function PacchettiPage() {
     p.nome.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const openCreateDialog = (tipo: "Statico" | "Dinamico") => {
+  const openCreateDialog = (tipo: "statico" | "dinamico") => {
     setDialogType(tipo);
     setEditingPacchetto(null);
-    setFormData({ nome: "", numFigurine: 1 });
+    setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
     setIsDialogOpen(true);
   };
 
   const openEditDialog = (pacchetto: Pacchetto) => {
     setEditingPacchetto(pacchetto);
     setDialogType(pacchetto.tipo);
-    setFormData({ nome: pacchetto.nome, numFigurine: pacchetto.numFigurine });
+    setFormData({
+      nome: pacchetto.nome,
+      numFigurine: pacchetto.numFigurine,
+      syndication: pacchetto.syndication || [...DEFAULT_SYNDICATION],
+    });
     setIsDialogOpen(true);
   };
 
@@ -82,7 +87,7 @@ export default function PacchettiPage() {
     if (editingPacchetto) {
       setPacchetti(pacchetti.map(p => 
         p.id === editingPacchetto.id 
-          ? { ...p, nome: formData.nome, numFigurine: formData.numFigurine }
+          ? { ...p, nome: formData.nome, numFigurine: formData.numFigurine, syndication: formData.syndication }
           : p
       ));
       toast({
@@ -95,6 +100,8 @@ export default function PacchettiPage() {
         nome: formData.nome,
         numFigurine: formData.numFigurine,
         tipo: dialogType,
+        syndication: formData.syndication,
+        createdAt: new Date(),
       };
       setPacchetti([...pacchetti, newPacchetto]);
       toast({
@@ -104,7 +111,7 @@ export default function PacchettiPage() {
     }
 
     setIsDialogOpen(false);
-    setFormData({ nome: "", numFigurine: 1 });
+    setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
   };
 
   const handleDelete = () => {
@@ -140,14 +147,14 @@ export default function PacchettiPage() {
             <div className="flex gap-4">
               <Button 
                 variant="outline" 
-                onClick={() => openCreateDialog("Statico")}
+                onClick={() => openCreateDialog("statico")}
                 className="border-2"
               >
                 Crea pacchetto statico
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => openCreateDialog("Dinamico")}
+                onClick={() => openCreateDialog("dinamico")}
                 className="border-2"
               >
                 Crea pacchetto dinamico
@@ -187,13 +194,14 @@ export default function PacchettiPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>N° figurine</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Syndication</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredPacchetti.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Nessun pacchetto trovato. Crea il tuo primo pacchetto!
                     </TableCell>
                   </TableRow>
@@ -202,7 +210,10 @@ export default function PacchettiPage() {
                     <TableRow key={pacchetto.id}>
                       <TableCell className="font-medium">{pacchetto.nome}</TableCell>
                       <TableCell>{pacchetto.numFigurine}</TableCell>
-                      <TableCell>{pacchetto.tipo}</TableCell>
+                      <TableCell className="capitalize">{pacchetto.tipo}</TableCell>
+                      <TableCell>
+                        <SyndicationStatusIcons syndication={pacchetto.syndication || DEFAULT_SYNDICATION} />
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -240,33 +251,40 @@ export default function PacchettiPage() {
 
       {/* Dialog per creare/modificare pacchetto */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingPacchetto ? "Modifica Pacchetto" : `Crea Pacchetto ${dialogType}`}
+              {editingPacchetto ? "Modifica Pacchetto" : `Crea Pacchetto ${dialogType === "statico" ? "Statico" : "Dinamico"}`}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome</Label>
-              <Input
-                id="nome"
-                value={formData.nome}
-                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                placeholder="Inserisci nome pacchetto"
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 py-4 pr-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome</Label>
+                <Input
+                  id="nome"
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  placeholder="Inserisci nome pacchetto"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="numFigurine">Numero figurine</Label>
+                <Input
+                  id="numFigurine"
+                  type="number"
+                  min={1}
+                  value={formData.numFigurine}
+                  onChange={(e) => setFormData({ ...formData, numFigurine: parseInt(e.target.value) || 1 })}
+                />
+              </div>
+
+              <SyndicationSection
+                syndication={formData.syndication}
+                onChange={(syndication) => setFormData({ ...formData, syndication })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="numFigurine">Numero figurine</Label>
-              <Input
-                id="numFigurine"
-                type="number"
-                min={1}
-                value={formData.numFigurine}
-                onChange={(e) => setFormData({ ...formData, numFigurine: parseInt(e.target.value) || 1 })}
-              />
-            </div>
-          </div>
+          </ScrollArea>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Annulla
