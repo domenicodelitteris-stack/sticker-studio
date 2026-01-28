@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, QrCode, Search } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -39,11 +40,11 @@ import { SyndicationSection } from "@/components/SyndicationSection";
 import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 
 export default function PacchettiPage() {
+  const navigate = useNavigate();
   const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>("pacchetti", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<"statico" | "dinamico">("statico");
-  const [editingPacchetto, setEditingPacchetto] = useState<Pacchetto | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
     numFigurine: 1,
@@ -58,19 +59,7 @@ export default function PacchettiPage() {
 
   const openCreateDialog = (tipo: "statico" | "dinamico") => {
     setDialogType(tipo);
-    setEditingPacchetto(null);
     setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
-    setIsDialogOpen(true);
-  };
-
-  const openEditDialog = (pacchetto: Pacchetto) => {
-    setEditingPacchetto(pacchetto);
-    setDialogType(pacchetto.tipo);
-    setFormData({
-      nome: pacchetto.nome,
-      numFigurine: pacchetto.numFigurine,
-      syndication: pacchetto.syndication || [...DEFAULT_SYNDICATION],
-    });
     setIsDialogOpen(true);
   };
 
@@ -84,31 +73,19 @@ export default function PacchettiPage() {
       return;
     }
 
-    if (editingPacchetto) {
-      setPacchetti(pacchetti.map(p => 
-        p.id === editingPacchetto.id 
-          ? { ...p, nome: formData.nome, numFigurine: formData.numFigurine, syndication: formData.syndication }
-          : p
-      ));
-      toast({
-        title: "Pacchetto modificato",
-        description: `Il pacchetto "${formData.nome}" è stato aggiornato`,
-      });
-    } else {
-      const newPacchetto: Pacchetto = {
-        id: crypto.randomUUID(),
-        nome: formData.nome,
-        numFigurine: formData.numFigurine,
-        tipo: dialogType,
-        syndication: formData.syndication,
-        createdAt: new Date(),
-      };
-      setPacchetti([...pacchetti, newPacchetto]);
-      toast({
-        title: "Pacchetto creato",
-        description: `Il pacchetto "${formData.nome}" è stato creato`,
-      });
-    }
+    const newPacchetto: Pacchetto = {
+      id: crypto.randomUUID(),
+      nome: formData.nome,
+      numFigurine: formData.numFigurine,
+      tipo: dialogType,
+      syndication: formData.syndication,
+      createdAt: new Date(),
+    };
+    setPacchetti([...pacchetti, newPacchetto]);
+    toast({
+      title: "Pacchetto creato",
+      description: `Il pacchetto "${formData.nome}" è stato creato`,
+    });
 
     setIsDialogOpen(false);
     setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
@@ -219,7 +196,7 @@ export default function PacchettiPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => openEditDialog(pacchetto)}
+                            onClick={() => navigate(`/pacchetti/${pacchetto.id}`)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -253,8 +230,8 @@ export default function PacchettiPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingPacchetto ? "Modifica Pacchetto" : `Crea Pacchetto ${dialogType === "statico" ? "Statico" : "Dinamico"}`}
+          <DialogTitle>
+              {`Crea Pacchetto ${dialogType === "statico" ? "Statico" : "Dinamico"}`}
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">
@@ -290,7 +267,7 @@ export default function PacchettiPage() {
               Annulla
             </Button>
             <Button onClick={handleSubmit}>
-              {editingPacchetto ? "Salva" : "Crea"}
+              Crea
             </Button>
           </DialogFooter>
         </DialogContent>
