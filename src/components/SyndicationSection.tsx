@@ -1,11 +1,12 @@
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, Check, Copy } from "lucide-react";
+import { CalendarIcon, Check, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SyndicationPlatform } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -26,55 +27,91 @@ interface SyndicationSectionProps {
   onChange: (syndication: SyndicationPlatform[]) => void;
 }
 
-export function SyndicationSection({ syndication, onChange }: SyndicationSectionProps) {
+function toTimeValue(dateIso: string | null) {
+  const d = dateIso ? new Date(dateIso) : new Date();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+function setTimeOnDate(base: Date, timeHHmm: string) {
+  const [hh, mm] = timeHHmm.split(":").map((x) => parseInt(x, 10));
+  const d = new Date(base);
+  d.setHours(Number.isFinite(hh) ? hh : 0, Number.isFinite(mm) ? mm : 0, 0, 0);
+  return d;
+}
+
+export function SyndicationSection({
+  syndication,
+  onChange,
+}: SyndicationSectionProps) {
   const allPublished = syndication.every((s) => s.isPublished);
 
   const handleToggleAll = (checked: boolean) => {
-    onChange(
-      syndication.map((s) => ({
-        ...s,
-        isPublished: checked,
-      }))
-    );
+    onChange(syndication.map((s) => ({ ...s, isPublished: checked })));
   };
 
   const handleTogglePlatform = (platform: string, checked: boolean) => {
     onChange(
       syndication.map((s) =>
-        s.platform === platform ? { ...s, isPublished: checked } : s
-      )
+        s.platform === platform ? { ...s, isPublished: checked } : s,
+      ),
     );
   };
 
-  const handleDateChange = (
+  const handleDateOnlyChange = (
     platform: string,
     field: "startDate" | "endDate",
-    date: Date | undefined
+    date: Date | undefined,
   ) => {
     onChange(
-      syndication.map((s) =>
-        s.platform === platform
-          ? { ...s, [field]: date ? date.toISOString() : null }
-          : s
-      )
+      syndication.map((s) => {
+        if (s.platform !== platform) return s;
+
+        if (!date) return { ...s, [field]: null };
+
+        const existingIso = s[field] ?? null;
+        const time = toTimeValue(existingIso);
+        const withTime = setTimeOnDate(date, time);
+
+        return { ...s, [field]: withTime.toISOString() };
+      }),
     );
   };
 
-  const copyStartDate = (platform: string) => {
-    const item = syndication.find((s) => s.platform === platform);
-    if (item?.startDate) {
-      onChange(
-        syndication.map((s) =>
-          s.platform === platform ? { ...s, endDate: s.startDate } : s
-        )
-      );
-    }
+  const handleTimeOnlyChange = (
+    platform: string,
+    field: "startDate" | "endDate",
+    timeHHmm: string,
+  ) => {
+    onChange(
+      syndication.map((s) => {
+        if (s.platform !== platform) return s;
+
+        const base = s[field] ? new Date(s[field] as string) : new Date();
+        const withTime = setTimeOnDate(base, timeHHmm);
+
+        return { ...s, [field]: withTime.toISOString() };
+      }),
+    );
+  };
+
+  const copyToAll = (field: "startDate" | "endDate", value: string | null) => {
+    onChange(syndication.map((s) => ({ ...s, [field]: value })));
+  };
+
+  const clearField = (platform: string, field: "startDate" | "endDate") => {
+    onChange(
+      syndication.map((s) =>
+        s.platform === platform ? { ...s, [field]: null } : s,
+      ),
+    );
   };
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Syndications</h3>
-      
+
       <div className="flex items-center space-x-2">
         <Checkbox
           id="publish-all"
@@ -91,8 +128,8 @@ export function SyndicationSection({ syndication, onChange }: SyndicationSection
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>È Pubblicato</TableHead>
-            <TableHead>Data di inizio pubblicazione</TableHead>
-            <TableHead>Data di fine pubblicazione</TableHead>
+            <TableHead>Data/ora inizio pubblicazione</TableHead>
+            <TableHead>Data/ora fine pubblicazione</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -117,34 +154,73 @@ export function SyndicationSection({ syndication, onChange }: SyndicationSection
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-[180px] justify-start text-left font-normal",
-                          !item.startDate && "text-muted-foreground"
+                          "w-[220px] justify-start text-left font-normal",
+                          !item.startDate && "text-muted-foreground",
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {item.startDate
-                          ? format(new Date(item.startDate), "dd/MM/yyyy HH:mm", { locale: it })
-                          : "Seleziona data"}
+                          ? format(
+                              new Date(item.startDate),
+                              "dd/MM/yyyy HH:mm",
+                              { locale: it },
+                            )
+                          : "Seleziona data/ora"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+
+                    <PopoverContent
+                      className="w-auto p-3 space-y-3"
+                      align="start"
+                    >
                       <Calendar
                         mode="single"
-                        selected={item.startDate ? new Date(item.startDate) : undefined}
-                        onSelect={(date) => handleDateChange(item.platform, "startDate", date)}
+                        selected={
+                          item.startDate ? new Date(item.startDate) : undefined
+                        }
+                        onSelect={(date) =>
+                          handleDateOnlyChange(item.platform, "startDate", date)
+                        }
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className={cn("pointer-events-auto")}
                       />
+
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Orario
+                        </Label>
+                        <Input
+                          type="time"
+                          value={toTimeValue(item.startDate)}
+                          onChange={(e) =>
+                            handleTimeOnlyChange(
+                              item.platform,
+                              "startDate",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <Button
                     variant="default"
                     size="icon"
                     className="bg-primary hover:bg-primary/90"
-                    onClick={() => copyStartDate(item.platform)}
-                    title="Copia data"
+                    onClick={() => copyToAll("startDate", item.startDate)}
+                    title="Copia su tutte le piattaforme"
+                    disabled={!item.startDate}
                   >
                     <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => clearField(item.platform, "startDate")}
+                    title="Cancella"
+                    disabled={!item.startDate}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -155,37 +231,72 @@ export function SyndicationSection({ syndication, onChange }: SyndicationSection
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-[180px] justify-start text-left font-normal",
-                          !item.endDate && "text-muted-foreground"
+                          "w-[220px] justify-start text-left font-normal",
+                          !item.endDate && "text-muted-foreground",
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {item.endDate
-                          ? format(new Date(item.endDate), "dd/MM/yyyy HH:mm", { locale: it })
-                          : "Seleziona data"}
+                          ? format(new Date(item.endDate), "dd/MM/yyyy HH:mm", {
+                              locale: it,
+                            })
+                          : "Seleziona data/ora"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+
+                    <PopoverContent
+                      className="w-auto p-3 space-y-3"
+                      align="start"
+                    >
                       <Calendar
                         mode="single"
-                        selected={item.endDate ? new Date(item.endDate) : undefined}
-                        onSelect={(date) => handleDateChange(item.platform, "endDate", date)}
+                        selected={
+                          item.endDate ? new Date(item.endDate) : undefined
+                        }
+                        onSelect={(date) =>
+                          handleDateOnlyChange(item.platform, "endDate", date)
+                        }
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
+                        className={cn("pointer-events-auto")}
                       />
+
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Orario
+                        </Label>
+                        <Input
+                          type="time"
+                          value={toTimeValue(item.endDate)}
+                          onChange={(e) =>
+                            handleTimeOnlyChange(
+                              item.platform,
+                              "endDate",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </div>
                     </PopoverContent>
                   </Popover>
                   <Button
                     variant="default"
                     size="icon"
                     className="bg-primary hover:bg-primary/90"
-                    onClick={() => {
-                      // Clear end date
-                      handleDateChange(item.platform, "endDate", undefined);
-                    }}
-                    title="Cancella data"
+                    onClick={() => copyToAll("endDate", item.endDate)}
+                    title="Copia su tutte le piattaforme"
+                    disabled={!item.endDate}
                   >
                     <Copy className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => clearField(item.platform, "endDate")}
+                    title="Cancella"
+                    disabled={!item.endDate}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>

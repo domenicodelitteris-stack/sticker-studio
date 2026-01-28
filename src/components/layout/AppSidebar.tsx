@@ -18,7 +18,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useState } from "react";
-
+import BoingLogo from "@/assets/BoingLogoITA.png";
 const menuItems = [
   {
     title: "Gestione Figurine",
@@ -49,16 +49,27 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r-0">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader
+        style={{ backgroundColor: "white" }}
+        className="p-4 border-b gray"
+      >
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">AD</span>
-          </div>
-          <span className="font-semibold text-sidebar-foreground">Album Digitale</span>
+          <img
+            src={BoingLogo}
+            alt="Boing Logo"
+            className="w-12 h-12 object-cover"
+          />
+
+          <span
+            style={{ color: "black" }}
+            className="font-semibold text-sidebar-foreground"
+          >
+            Album Digitale
+          </span>
         </div>
       </SidebarHeader>
-      
-      <SidebarContent className="p-2">
+
+      <SidebarContent style={{ backgroundColor: "white" }} className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -67,28 +78,35 @@ export function AppSidebar() {
                   key={item.title}
                   open={openGroups[item.url.slice(1)]}
                   onOpenChange={(open) =>
-                    setOpenGroups((prev) => ({ ...prev, [item.url.slice(1)]: open }))
+                    setOpenGroups((prev) => ({
+                      ...prev,
+                      [item.url.slice(1)]: open,
+                    }))
                   }
                 >
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         className={`w-full justify-between text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-border/50 ${
-                          isActive(item.url) ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : ""
+                          isActive(item.url)
+                            ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                            : ""
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <item.icon className="h-5 w-5" />
-                          <span>{item.title}</span>
+                          <span style={{ color: "black" }}>{item.title}</span>
                         </div>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${openGroups[item.url.slice(1)] ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${openGroups[item.url.slice(1)] ? "rotate-180" : ""}`}
+                        />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="ml-8 mt-1 space-y-1">
                         <NavLink
                           to={item.url}
-                          className="block px-3 py-2 text-sm rounded-md text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-border/50"
+                          className="block px-3 py-2 text-sm rounded-md text-black hover:text-black"
                           activeClassName="bg-primary text-primary-foreground hover:bg-primary"
                         >
                           {item.title.replace("Gestione ", "")}

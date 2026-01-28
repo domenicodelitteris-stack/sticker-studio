@@ -7,25 +7,73 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+import Android from "@/assets/Android.png";
+import iOs from "@/assets/iOS.png";
+import Web from "@/assets/Web.png";
+import SmartTv from "@/assets/Smart_Tv.png";
 
 interface SyndicationStatusIconsProps {
   syndication: SyndicationPlatform[];
 }
 
-export function SyndicationStatusIcons({ syndication }: SyndicationStatusIconsProps) {
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
+  try {
+    return format(new Date(value), "dd/MM/yyyy HH:mm", { locale: it });
+  } catch {
+    return "—";
+  }
+}
+
+export function SyndicationStatusIcons({
+  syndication,
+}: SyndicationStatusIconsProps) {
   const getPlatformIcon = (platform: string, isPublished: boolean) => {
-    const baseClass = "h-4 w-4";
-    const activeClass = isPublished ? "text-primary" : "text-muted-foreground/40";
-    
+    const baseClass = "h-8 w-8";
+    const activeClass = isPublished
+      ? "text-primary"
+      : "text-muted-foreground/40";
+
     switch (platform) {
       case "Web":
-        return <Globe className={cn(baseClass, activeClass)} />;
+        return (
+          <img
+            src={Web}
+            alt="web"
+            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
+            style={{ objectFit: "contain" }}
+          />
+        );
       case "iOS":
-        return <Smartphone className={cn(baseClass, activeClass)} />;
+        return (
+          <img
+            src={iOs}
+            alt="ios"
+            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
+            style={{ objectFit: "contain" }}
+          />
+        );
       case "Android":
-        return <Monitor className={cn(baseClass, activeClass)} />;
+        return (
+          <img
+            src={Android}
+            alt="Android"
+            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
+            style={{ objectFit: "contain" }}
+          />
+        );
+
       case "Smart TV":
-        return <Tv className={cn(baseClass, activeClass)} />;
+        return (
+          <img
+            src={SmartTv}
+            alt="SmartTv"
+            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
+            style={{ objectFit: "contain" }}
+          />
+        );
       default:
         return null;
     }
@@ -41,10 +89,26 @@ export function SyndicationStatusIcons({ syndication }: SyndicationStatusIconsPr
                 {getPlatformIcon(item.platform, item.isPublished)}
               </span>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {item.platform}: {item.isPublished ? "Pubblicato" : "Non pubblicato"}
-              </p>
+            <TooltipContent className="max-w-xs">
+              <div className="space-y-1 text-sm">
+                <div className="font-medium">{item.platform}</div>
+
+                <div>
+                  Stato:{" "}
+                  <span
+                    className={
+                      item.isPublished
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    {item.isPublished ? "Pubblicato" : "Non pubblicato"}
+                  </span>
+                </div>
+
+                <div>Dal: {formatDateTime(item.startDate)}</div>
+                <div>Al: {formatDateTime(item.endDate)}</div>
+              </div>
             </TooltipContent>
           </Tooltip>
         ))}

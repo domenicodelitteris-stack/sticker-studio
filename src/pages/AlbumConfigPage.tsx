@@ -46,7 +46,10 @@ export default function AlbumConfigPage() {
   if (!album) {
     return (
       <>
-        <AppHeader title="Configurazione Album" breadcrumb="Album > Configurazione" />
+        <AppHeader
+          title="Configurazione Album"
+          breadcrumb="Album > Configurazione"
+        />
         <PageHeader title="Album non trovato" />
         <div className="flex-1 p-6">
           <Button onClick={() => navigate("/album")}>
@@ -60,7 +63,10 @@ export default function AlbumConfigPage() {
 
   return (
     <>
-      <AppHeader title="Configurazione Album" breadcrumb={`Album > ${album.nome}`} />
+      <AppHeader
+        title="Configurazione Album"
+        breadcrumb={`Album > ${album.nome}`}
+      />
       <PageHeader title={`Configurazione: ${album.nome}`} />
 
       <div className="flex-1 p-6 space-y-6 overflow-auto">
@@ -74,29 +80,61 @@ export default function AlbumConfigPage() {
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Figurine ({albumFigurine.length} elementi)</CardTitle>
-            <Button onClick={() => navigate(`/figurine/new?albumId=${albumId}`)}>
+            <Button
+              onClick={() => navigate(`/figurine/new?albumId=${albumId}`)}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Inserisci figurina
             </Button>
           </CardHeader>
           <CardContent>
             {/* Griglia visiva delle figurine */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
+                gap: "80px",
+              }}
+            >
               {albumFigurine.map((figurina) => (
                 <div
                   key={figurina.id}
-                  className="aspect-[3/4] border-2 border-yellow-500 rounded-lg flex items-center justify-center bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => navigate(`/figurine/${figurina.id}`)}
+                  style={{
+                    width: "150px",
+                    aspectRatio: "3 / 4",
+                    border: "2px solid #eab308",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    transition: "background-color 0.2s",
+                  }}
                 >
-                  <div className="text-center p-2">
-                    <div className="font-bold text-lg">{figurina.numero}</div>
-                    <div className="text-xs text-muted-foreground truncate">{figurina.nome}</div>
+                  <div style={{ textAlign: "center", padding: "4px" }}>
+                    <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                      {figurina.numero}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "#666",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {figurina.nome}
+                    </div>
                   </div>
                 </div>
               ))}
               {albumFigurine.length === 0 && (
                 <div className="col-span-5 text-center text-muted-foreground py-8">
-                  Nessuna figurina inserita. Clicca "Inserisci figurina" per iniziare.
+                  Nessuna figurina inserita. Clicca "Inserisci figurina" per
+                  iniziare.
                 </div>
               )}
             </div>
@@ -116,19 +154,28 @@ export default function AlbumConfigPage() {
               <TableBody>
                 {albumFigurine.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessuna figurina trovata
                     </TableCell>
                   </TableRow>
                 ) : (
                   albumFigurine.map((figurina) => (
                     <TableRow key={figurina.id}>
-                      <TableCell className="font-medium">{figurina.numero}</TableCell>
+                      <TableCell className="font-medium">
+                        {figurina.numero}
+                      </TableCell>
                       <TableCell>{figurina.nome}</TableCell>
                       <TableCell>{figurina.tipo}</TableCell>
                       <TableCell>{figurina.frequenza}/10</TableCell>
                       <TableCell>
-                        <SyndicationStatusIcons syndication={figurina.syndication || DEFAULT_SYNDICATION} />
+                        <SyndicationStatusIcons
+                          syndication={
+                            figurina.syndication || DEFAULT_SYNDICATION
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button
@@ -161,12 +208,15 @@ export default function AlbumConfigPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questa figurina? Questa azione non può essere annullata.
+              Sei sicuro di voler eliminare questa figurina? Questa azione non
+              può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

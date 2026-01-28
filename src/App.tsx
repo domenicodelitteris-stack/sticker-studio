@@ -12,6 +12,7 @@ import AlbumConfigPage from "./pages/AlbumConfigPage";
 import PacchettiPage from "./pages/PacchettiPage";
 import PacchettoConfigPage from "./pages/PacchettoConfigPage";
 import NotFound from "./pages/NotFound";
+import AlbumCreatePage from "./pages/AlbumCreatePage";
 
 const queryClient = new QueryClient();
 
@@ -25,11 +26,19 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/figurine" element={<FigurinePage />} />
-            <Route path="/figurine/:figurinaId" element={<FigurinaConfigPage />} />
+            <Route
+              path="/figurine/:figurinaId"
+              element={<FigurinaConfigPage />}
+            />
             <Route path="/album" element={<AlbumPage />} />
             <Route path="/album/:albumId" element={<AlbumConfigPage />} />
+            <Route path="/album/new" element={<AlbumCreatePage />} />
+
             <Route path="/pacchetti" element={<PacchettiPage />} />
-            <Route path="/pacchetti/:pacchettoId" element={<PacchettoConfigPage />} />
+            <Route
+              path="/pacchetti/:pacchettoId"
+              element={<PacchettoConfigPage />}
+            />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

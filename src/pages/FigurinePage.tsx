@@ -27,7 +27,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Figurina, Album, DEFAULT_SYNDICATION } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
-
+import { SidebarTrigger } from "@/components/ui/sidebar";
 export default function FigurinePage() {
   const navigate = useNavigate();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
@@ -36,7 +36,7 @@ export default function FigurinePage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredFigurine = figurine.filter((f) =>
-    f.nome.toLowerCase().includes(searchQuery.toLowerCase())
+    f.nome.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleDelete = () => {
@@ -54,37 +54,38 @@ export default function FigurinePage() {
     <>
       <AppHeader title="Gestione Figurine" breadcrumb="Figurine" />
       <PageHeader title="Figurine" />
-      
+
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <Card>
-          <CardHeader>
-            <CardTitle>Archivio Figurine</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <CardTitle>Figurine</CardTitle>
+
+              <Button onClick={() => navigate("/figurine/new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Aggiungi Figurina
+              </Button>
+            </div>
+
+            <div className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px]">
                 <Input
                   placeholder="Cerca figurina..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="default" size="icon">
+              <Button variant="default" size="icon" aria-label="Cerca">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Contenuti ({filteredFigurine.length} elementi)</CardTitle>
-            <Button onClick={() => navigate("/figurine/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Aggiungi Figurina
-            </Button>
           </CardHeader>
+
           <CardContent>
+            <div className="mb-3 text-sm text-muted-foreground">
+              Contenuti ({filteredFigurine.length} elementi)
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -96,39 +97,54 @@ export default function FigurinePage() {
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filteredFigurine.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessuna figurina trovata
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredFigurine.map((figurina) => (
                     <TableRow key={figurina.id}>
-                      <TableCell className="font-medium">{figurina.numero}</TableCell>
+                      <TableCell className="font-medium">
+                        {figurina.numero}
+                      </TableCell>
                       <TableCell>{figurina.nome}</TableCell>
                       <TableCell>{figurina.tipo}</TableCell>
                       <TableCell>{figurina.frequenza}/10</TableCell>
                       <TableCell>
-                        <SyndicationStatusIcons syndication={figurina.syndication || DEFAULT_SYNDICATION} />
+                        <SyndicationStatusIcons
+                          syndication={
+                            figurina.syndication || DEFAULT_SYNDICATION
+                          }
+                        />
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/figurine/${figurina.id}`)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(figurina.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/figurine/${figurina.id}`)}
+                            aria-label="Modifica"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(figurina.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Elimina"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -144,12 +160,15 @@ export default function FigurinePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questa figurina? Questa azione non può essere annullata.
+              Sei sicuro di voler eliminare questa figurina? Questa azione non
+              può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

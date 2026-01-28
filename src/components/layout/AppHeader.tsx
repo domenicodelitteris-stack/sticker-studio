@@ -8,15 +8,25 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, breadcrumb }: AppHeaderProps) {
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
+    <header
+      style={{ background: "var(--header-gradient)" }}
+      className="h-14 border-border bg-card flex items-center justify-between px-4"
+    >
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+        <SidebarTrigger className="text-white hover:text-white" />
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-primary font-medium">{title}</span>
+          <span style={{ color: "white" }} className="text-primary font-medium">
+            {title}
+          </span>
           {breadcrumb && (
             <>
               <span className="text-muted-foreground">&gt;</span>
-              <span className="text-muted-foreground">{breadcrumb}</span>
+              <span
+                style={{ color: "white" }}
+                className="text-muted-foreground"
+              >
+                {breadcrumb}
+              </span>
             </>
           )}
         </div>

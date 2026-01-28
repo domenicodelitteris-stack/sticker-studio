@@ -49,12 +49,12 @@ export default function AlbumPage() {
   });
 
   const filteredAlbum = album.filter((a) =>
-    a.nome.toLowerCase().includes(searchQuery.toLowerCase())
+    a.nome.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleAdd = () => {
     if (!newAlbum.nome.trim()) return;
-    
+
     const albumItem: Album = {
       id: crypto.randomUUID(),
       nome: newAlbum.nome.trim(),
@@ -62,7 +62,7 @@ export default function AlbumPage() {
       syndication: [...DEFAULT_SYNDICATION],
       createdAt: new Date(),
     };
-    
+
     setAlbum([...album, albumItem]);
     setNewAlbum({ nome: "", anno: new Date().getFullYear() });
     setIsDialogOpen(false);
@@ -71,7 +71,6 @@ export default function AlbumPage() {
   const handleDelete = () => {
     if (!deleteId) return;
     setAlbum(album.filter((a) => a.id !== deleteId));
-    // Rimuovi anche le figurine associate
     setFigurine(figurine.filter((f) => f.albumId !== deleteId));
     setDeleteId(null);
   };
@@ -84,37 +83,38 @@ export default function AlbumPage() {
     <>
       <AppHeader title="Gestione Album" breadcrumb="Album" />
       <PageHeader title="Album" />
-      
+
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <Card>
-          <CardHeader>
-            <CardTitle>Archivio Album</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
+          <CardHeader className="space-y-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <CardTitle>Album</CardTitle>
+
+              <Button onClick={() => navigate("/album/new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Aggiungi Album
+              </Button>
+            </div>
+
+            <div className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px]">
                 <Input
                   placeholder="Cerca album..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="default" size="icon">
+              <Button variant="default" size="icon" aria-label="Cerca">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Contenuti ({filteredAlbum.length} elementi)</CardTitle>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Aggiungi Album
-            </Button>
           </CardHeader>
+
           <CardContent>
+            <div className="mb-3 text-sm text-muted-foreground">
+              Contenuti ({filteredAlbum.length} elementi)
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -125,38 +125,53 @@ export default function AlbumPage() {
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filteredAlbum.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessun album trovato
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredAlbum.map((albumItem) => (
                     <TableRow key={albumItem.id}>
-                      <TableCell className="font-medium">{albumItem.nome}</TableCell>
+                      <TableCell className="font-medium">
+                        {albumItem.nome}
+                      </TableCell>
                       <TableCell>{albumItem.anno}</TableCell>
                       <TableCell>{getFigurineCount(albumItem.id)}</TableCell>
                       <TableCell>
-                        <SyndicationStatusIcons syndication={albumItem.syndication || DEFAULT_SYNDICATION} />
+                        <SyndicationStatusIcons
+                          syndication={
+                            albumItem.syndication || DEFAULT_SYNDICATION
+                          }
+                        />
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/album/${albumItem.id}`)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(albumItem.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/album/${albumItem.id}`)}
+                            aria-label="Modifica"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(albumItem.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Elimina"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -167,7 +182,7 @@ export default function AlbumPage() {
         </Card>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Aggiungi Album</DialogTitle>
@@ -178,7 +193,9 @@ export default function AlbumPage() {
               <Input
                 id="nome"
                 value={newAlbum.nome}
-                onChange={(e) => setNewAlbum({ ...newAlbum, nome: e.target.value })}
+                onChange={(e) =>
+                  setNewAlbum({ ...newAlbum, nome: e.target.value })
+                }
                 placeholder="Nome album"
               />
             </div>
@@ -188,7 +205,12 @@ export default function AlbumPage() {
                 id="anno"
                 type="number"
                 value={newAlbum.anno}
-                onChange={(e) => setNewAlbum({ ...newAlbum, anno: parseInt(e.target.value) || new Date().getFullYear() })}
+                onChange={(e) =>
+                  setNewAlbum({
+                    ...newAlbum,
+                    anno: parseInt(e.target.value) || new Date().getFullYear(),
+                  })
+                }
                 placeholder="Anno"
               />
             </div>
@@ -202,19 +224,23 @@ export default function AlbumPage() {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questo album? Verranno eliminate anche tutte le figurine associate. Questa azione non può essere annullata.
+              Sei sicuro di voler eliminare questo album? Verranno eliminate
+              anche tutte le figurine associate. Questa azione non può essere
+              annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

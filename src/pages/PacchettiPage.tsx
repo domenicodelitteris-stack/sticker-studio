@@ -31,19 +31,22 @@ import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 
 export default function PacchettiPage() {
   const navigate = useNavigate();
-  const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>("pacchetti", []);
+  const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>(
+    "pacchetti",
+    [],
+  );
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const filteredPacchetti = pacchetti.filter((p) =>
-    p.nome.toLowerCase().includes(searchQuery.toLowerCase())
+    p.nome.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleDelete = () => {
     if (deleteId) {
-      const pacchetto = pacchetti.find(p => p.id === deleteId);
-      setPacchetti(pacchetti.filter(p => p.id !== deleteId));
+      const pacchetto = pacchetti.find((p) => p.id === deleteId);
+      setPacchetti(pacchetti.filter((p) => p.id !== deleteId));
       toast({
         title: "Pacchetto eliminato",
         description: `Il pacchetto "${pacchetto?.nome}" è stato eliminato`,
@@ -63,57 +66,50 @@ export default function PacchettiPage() {
     <>
       <AppHeader title="Gestione Pacchetti" breadcrumb="Pacchetti" />
       <PageHeader title="Pacchetti" />
-      
+
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <Card>
-          <CardHeader>
-            <CardTitle>Creazione Pacchetti</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/pacchetti/new?tipo=statico")}
-                className="border-2"
-              >
-                Crea pacchetto statico
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/pacchetti/new?tipo=dinamico")}
-                className="border-2"
-              >
-                Crea pacchetto dinamico
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <CardHeader className="space-y-3">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <CardTitle>Pacchetti</CardTitle>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Archivio Pacchetti</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/pacchetti/new?tipo=statico")}
+                  className="border-2"
+                >
+                  Crea pacchetto statico
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/pacchetti/new?tipo=dinamico")}
+                  className="border-2"
+                >
+                  Crea pacchetto dinamico
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px]">
                 <Input
                   placeholder="Cerca pacchetti..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="default" size="icon">
+              <Button variant="default" size="icon" aria-label="Cerca">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Contenuti ({filteredPacchetti.length} elementi)</CardTitle>
           </CardHeader>
+
           <CardContent>
+            <div className="mb-3 text-sm text-muted-foreground">
+              Contenuti ({filteredPacchetti.length} elementi)
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -124,43 +120,62 @@ export default function PacchettiPage() {
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filteredPacchetti.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessun pacchetto trovato. Crea il tuo primo pacchetto!
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredPacchetti.map((pacchetto) => (
                     <TableRow key={pacchetto.id}>
-                      <TableCell className="font-medium">{pacchetto.nome}</TableCell>
+                      <TableCell className="font-medium">
+                        {pacchetto.nome}
+                      </TableCell>
                       <TableCell>{pacchetto.numFigurine}</TableCell>
-                      <TableCell className="capitalize">{pacchetto.tipo}</TableCell>
+                      <TableCell className="capitalize">
+                        {pacchetto.tipo}
+                      </TableCell>
                       <TableCell>
-                        <SyndicationStatusIcons syndication={pacchetto.syndication || DEFAULT_SYNDICATION} />
+                        <SyndicationStatusIcons
+                          syndication={
+                            pacchetto.syndication || DEFAULT_SYNDICATION
+                          }
+                        />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/pacchetti/${pacchetto.id}`)}
+                            onClick={() =>
+                              navigate(`/pacchetti/${pacchetto.id}`)
+                            }
+                            aria-label="Modifica"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
+
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setDeleteId(pacchetto.id)}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Elimina"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleGenerateQR(pacchetto)}
+                            aria-label="Genera QR"
                           >
                             <QrCode className="h-4 w-4" />
                           </Button>
@@ -180,12 +195,15 @@ export default function PacchettiPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questo pacchetto? Questa azione non può essere annullata.
+              Sei sicuro di voler eliminare questo pacchetto? Questa azione non
+              può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
