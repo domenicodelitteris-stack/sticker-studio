@@ -26,11 +26,11 @@ export default function FigurinaConfigPage() {
   const { toast } = useToast();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [album] = useLocalStorage<Album[]>("album", []);
-  
+
   const isNew = figurinaId === "new";
   const figurina = isNew ? null : figurine.find((f) => f.id === figurinaId);
   const preselectedAlbumId = searchParams.get("albumId");
-  
+
   const [formData, setFormData] = useState({
     nome: figurina?.nome || "",
     tipo: (figurina?.tipo || "Standard") as "Standard" | "Speciale",
@@ -69,6 +69,7 @@ export default function FigurinaConfigPage() {
     const returnUrl = preselectedAlbumId ? `/album/${preselectedAlbumId}` : "/figurine";
 
     if (isNew) {
+      console.log("ISNEW")
       const newFigurina: Figurina = {
         id: crypto.randomUUID(),
         nome: formData.nome.trim(),
@@ -79,22 +80,23 @@ export default function FigurinaConfigPage() {
         syndication: formData.syndication,
         createdAt: new Date(),
       };
+
       setFigurine([...figurine, newFigurina]);
       toast({
         title: "Figurina creata",
         description: `La figurina "${formData.nome}" è stata creata`,
       });
     } else {
-      setFigurine(figurine.map(f => 
-        f.id === figurinaId 
-          ? { 
-              ...f, 
-              nome: formData.nome.trim(), 
-              tipo: formData.tipo, 
-              frequenza: formData.frequenza, 
-              albumId: formData.albumId,
-              syndication: formData.syndication 
-            }
+      setFigurine(figurine.map(f =>
+        f.id === figurinaId
+          ? {
+            ...f,
+            nome: formData.nome.trim(),
+            tipo: formData.tipo,
+            frequenza: formData.frequenza,
+            albumId: formData.albumId,
+            syndication: formData.syndication
+          }
           : f
       ));
       toast({
@@ -102,8 +104,10 @@ export default function FigurinaConfigPage() {
         description: `La figurina "${formData.nome}" è stata aggiornata`,
       });
     }
-    
-    navigate(returnUrl);
+    setTimeout(() => {
+      navigate(returnUrl);
+    }, 1000);
+
   };
 
   const handleCancel = () => {
@@ -128,9 +132,9 @@ export default function FigurinaConfigPage() {
 
   return (
     <>
-      <AppHeader 
-        title="Configurazione Figurina" 
-        breadcrumb={`Figurine > ${isNew ? "Nuova" : figurina?.nome}`} 
+      <AppHeader
+        title="Configurazione Figurina"
+        breadcrumb={`Figurine > ${isNew ? "Nuova" : figurina?.nome}`}
       />
       <PageHeader title={isNew ? "Nuova Figurina" : `Configurazione: ${figurina?.nome}`} />
 
