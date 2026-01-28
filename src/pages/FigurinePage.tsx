@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Search, Pencil } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -13,13 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,110 +23,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Figurina, Album, DEFAULT_SYNDICATION, SyndicationPlatform } from "@/types";
+import { Figurina, Album, DEFAULT_SYNDICATION } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SyndicationSection } from "@/components/SyndicationSection";
 import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function FigurinePage() {
+  const navigate = useNavigate();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [album] = useLocalStorage<Album[]>("album", []);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [editingFigurina, setEditingFigurina] = useState<Figurina | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [newFigurina, setNewFigurina] = useState({
-    nome: "",
-    tipo: "Standard" as "Standard" | "Speciale",
-    frequenza: 5,
-    albumId: "",
-    syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
-  });
 
   const filteredFigurine = figurine.filter((f) =>
     f.nome.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getNextNumero = (albumId: string) => {
-    const albumFigurine = figurine.filter((f) => f.albumId === albumId);
-    const numeri = albumFigurine.map((f) => f.numero);
-    if (numeri.length === 0) return 1;
-    return Math.max(...numeri) + 1;
-  };
-
-  const handleAdd = () => {
-    if (!newFigurina.nome.trim() || !newFigurina.albumId) return;
-
-    const figurina: Figurina = {
-      id: crypto.randomUUID(),
-      nome: newFigurina.nome.trim(),
-      numero: getNextNumero(newFigurina.albumId),
-      tipo: newFigurina.tipo,
-      frequenza: newFigurina.frequenza,
-      albumId: newFigurina.albumId,
-      syndication: newFigurina.syndication,
-      createdAt: new Date(),
-    };
-
-    setFigurine([...figurine, figurina]);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "", syndication: [...DEFAULT_SYNDICATION] });
-    setIsDialogOpen(false);
-  };
-
-  const handleEdit = () => {
-    if (!editingFigurina || !newFigurina.nome.trim()) return;
-
-    setFigurine(
-      figurine.map((f) =>
-        f.id === editingFigurina.id
-          ? {
-              ...f,
-              nome: newFigurina.nome.trim(),
-              tipo: newFigurina.tipo,
-              frequenza: newFigurina.frequenza,
-              albumId: newFigurina.albumId,
-              syndication: newFigurina.syndication,
-            }
-          : f
-      )
-    );
-    setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "", syndication: [...DEFAULT_SYNDICATION] });
-    setIsDialogOpen(false);
-  };
-
   const handleDelete = () => {
     if (!deleteId) return;
     setFigurine(figurine.filter((f) => f.id !== deleteId));
     setDeleteId(null);
-  };
-
-  const openEditDialog = (figurina: Figurina) => {
-    setEditingFigurina(figurina);
-    setNewFigurina({
-      nome: figurina.nome,
-      tipo: figurina.tipo,
-      frequenza: figurina.frequenza,
-      albumId: figurina.albumId,
-      syndication: figurina.syndication || [...DEFAULT_SYNDICATION],
-    });
-    setIsDialogOpen(true);
-  };
-
-  const openAddDialog = () => {
-    setEditingFigurina(null);
-    setNewFigurina({ nome: "", tipo: "Standard", frequenza: 5, albumId: "", syndication: [...DEFAULT_SYNDICATION] });
-    setIsDialogOpen(true);
   };
 
   const getAlbumName = (albumId: string) => {
@@ -169,7 +79,7 @@ export default function FigurinePage() {
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Contenuti ({filteredFigurine.length} elementi)</CardTitle>
-            <Button onClick={openAddDialog}>
+            <Button onClick={() => navigate("/figurine/new")}>
               <Plus className="h-4 w-4 mr-2" />
               Aggiungi Figurina
             </Button>
@@ -207,7 +117,7 @@ export default function FigurinePage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => openEditDialog(figurina)}
+                          onClick={() => navigate(`/figurine/${figurina.id}`)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -228,103 +138,6 @@ export default function FigurinePage() {
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingFigurina ? "Modifica Figurina" : "Aggiungi Figurina"}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4 py-4 pr-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
-                <Input
-                  id="nome"
-                  value={newFigurina.nome}
-                  onChange={(e) => setNewFigurina({ ...newFigurina, nome: e.target.value })}
-                  placeholder="Nome figurina"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo</Label>
-                <Select
-                  value={newFigurina.tipo}
-                  onValueChange={(value: "Standard" | "Speciale") =>
-                    setNewFigurina({ ...newFigurina, tipo: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleziona tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Standard">Standard</SelectItem>
-                    <SelectItem value="Speciale">Speciale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="frequenza">Frequenza (X/10)</Label>
-                <Input
-                  id="frequenza"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={newFigurina.frequenza}
-                  onChange={(e) =>
-                    setNewFigurina({
-                      ...newFigurina,
-                      frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
-                    })
-                  }
-                  placeholder="Frequenza"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="album">Album</Label>
-                <Select
-                  value={newFigurina.albumId}
-                  onValueChange={(value) => setNewFigurina({ ...newFigurina, albumId: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleziona album" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {album.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        Nessun album disponibile
-                      </SelectItem>
-                    ) : (
-                      album.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.nome}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <SyndicationSection
-                syndication={newFigurina.syndication}
-                onChange={(syndication) => setNewFigurina({ ...newFigurina, syndication })}
-              />
-            </div>
-          </ScrollArea>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Annulla
-            </Button>
-            <Button
-              onClick={editingFigurina ? handleEdit : handleAdd}
-              disabled={!newFigurina.nome.trim() || !newFigurina.albumId}
-            >
-              {editingFigurina ? "Salva" : "Aggiungi"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
