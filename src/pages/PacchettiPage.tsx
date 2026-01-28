@@ -23,73 +23,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Pacchetto, DEFAULT_SYNDICATION, SyndicationPlatform } from "@/types";
-import { SyndicationSection } from "@/components/SyndicationSection";
+import { Pacchetto, DEFAULT_SYNDICATION } from "@/types";
 import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 
 export default function PacchettiPage() {
   const navigate = useNavigate();
   const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>("pacchetti", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"statico" | "dinamico">("statico");
-  const [formData, setFormData] = useState({
-    nome: "",
-    numFigurine: 1,
-    syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
-  });
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const filteredPacchetti = pacchetti.filter((p) =>
     p.nome.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const openCreateDialog = (tipo: "statico" | "dinamico") => {
-    setDialogType(tipo);
-    setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
-    setIsDialogOpen(true);
-  };
-
-  const handleSubmit = () => {
-    if (!formData.nome.trim()) {
-      toast({
-        title: "Errore",
-        description: "Inserisci un nome per il pacchetto",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newPacchetto: Pacchetto = {
-      id: crypto.randomUUID(),
-      nome: formData.nome,
-      numFigurine: formData.numFigurine,
-      tipo: dialogType,
-      syndication: formData.syndication,
-      createdAt: new Date(),
-    };
-    setPacchetti([...pacchetti, newPacchetto]);
-    toast({
-      title: "Pacchetto creato",
-      description: `Il pacchetto "${formData.nome}" è stato creato`,
-    });
-
-    setIsDialogOpen(false);
-    setFormData({ nome: "", numFigurine: 1, syndication: [...DEFAULT_SYNDICATION] });
-  };
 
   const handleDelete = () => {
     if (deleteId) {
@@ -115,7 +64,7 @@ export default function PacchettiPage() {
       <AppHeader title="Gestione Pacchetti" breadcrumb="Pacchetti" />
       <PageHeader title="Pacchetti" />
       
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
         <Card>
           <CardHeader>
             <CardTitle>Creazione Pacchetti</CardTitle>
@@ -124,14 +73,14 @@ export default function PacchettiPage() {
             <div className="flex gap-4">
               <Button 
                 variant="outline" 
-                onClick={() => openCreateDialog("statico")}
+                onClick={() => navigate("/pacchetti/new?tipo=statico")}
                 className="border-2"
               >
                 Crea pacchetto statico
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => openCreateDialog("dinamico")}
+                onClick={() => navigate("/pacchetti/new?tipo=dinamico")}
                 className="border-2"
               >
                 Crea pacchetto dinamico
@@ -226,54 +175,6 @@ export default function PacchettiPage() {
         </Card>
       </div>
 
-      {/* Dialog per creare/modificare pacchetto */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-          <DialogTitle>
-              {`Crea Pacchetto ${dialogType === "statico" ? "Statico" : "Dinamico"}`}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-4 py-4 pr-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Inserisci nome pacchetto"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="numFigurine">Numero figurine</Label>
-                <Input
-                  id="numFigurine"
-                  type="number"
-                  min={1}
-                  value={formData.numFigurine}
-                  onChange={(e) => setFormData({ ...formData, numFigurine: parseInt(e.target.value) || 1 })}
-                />
-              </div>
-
-              <SyndicationSection
-                syndication={formData.syndication}
-                onChange={(syndication) => setFormData({ ...formData, syndication })}
-              />
-            </div>
-          </ScrollArea>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Annulla
-            </Button>
-            <Button onClick={handleSubmit}>
-              Crea
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog di conferma eliminazione */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

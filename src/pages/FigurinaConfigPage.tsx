@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -66,6 +65,9 @@ export default function FigurinaConfigPage() {
       return;
     }
 
+    // Determine where to navigate back
+    const returnUrl = preselectedAlbumId ? `/album/${preselectedAlbumId}` : "/figurine";
+
     if (isNew) {
       const newFigurina: Figurina = {
         id: crypto.randomUUID(),
@@ -101,7 +103,12 @@ export default function FigurinaConfigPage() {
       });
     }
     
-    navigate("/figurine");
+    navigate(returnUrl);
+  };
+
+  const handleCancel = () => {
+    const returnUrl = preselectedAlbumId ? `/album/${preselectedAlbumId}` : "/figurine";
+    navigate(returnUrl);
   };
 
   if (!isNew && !figurina) {
@@ -119,11 +126,6 @@ export default function FigurinaConfigPage() {
     );
   }
 
-  const getAlbumName = (albumId: string) => {
-    const a = album.find((a) => a.id === albumId);
-    return a?.nome || "N/A";
-  };
-
   return (
     <>
       <AppHeader 
@@ -132,11 +134,11 @@ export default function FigurinaConfigPage() {
       />
       <PageHeader title={isNew ? "Nuova Figurina" : `Configurazione: ${figurina?.nome}`} />
 
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate("/figurine")}>
+          <Button variant="outline" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna alle Figurine
+            {preselectedAlbumId ? "Torna all'Album" : "Torna alle Figurine"}
           </Button>
         </div>
 
@@ -145,99 +147,97 @@ export default function FigurinaConfigPage() {
             <CardTitle>Dettagli Figurina</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-6 pr-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome</Label>
-                    <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                      placeholder="Nome figurina"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="album">Album</Label>
-                    <Select
-                      value={formData.albumId}
-                      onValueChange={(value) => setFormData({ ...formData, albumId: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona album" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {album.length === 0 ? (
-                          <SelectItem value="none" disabled>
-                            Nessun album disponibile
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome</Label>
+                  <Input
+                    id="nome"
+                    value={formData.nome}
+                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    placeholder="Nome figurina"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="album">Album</Label>
+                  <Select
+                    value={formData.albumId}
+                    onValueChange={(value) => setFormData({ ...formData, albumId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona album" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {album.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          Nessun album disponibile
+                        </SelectItem>
+                      ) : (
+                        album.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.nome}
                           </SelectItem>
-                        ) : (
-                          album.map((a) => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.nome}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo">Tipo</Label>
-                    <Select
-                      value={formData.tipo}
-                      onValueChange={(value: "Standard" | "Speciale") =>
-                        setFormData({ ...formData, tipo: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Standard">Standard</SelectItem>
-                        <SelectItem value="Speciale">Speciale</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="frequenza">Frequenza (X/10)</Label>
-                    <Input
-                      id="frequenza"
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={formData.frequenza}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
-                        })
-                      }
-                      placeholder="Frequenza"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Indica quante volte su 10 questa figurina può uscire
-                    </p>
-                  </div>
-                </div>
-
-                <SyndicationSection
-                  syndication={formData.syndication}
-                  onChange={(syndication) => setFormData({ ...formData, syndication })}
-                />
-
-                <div className="flex justify-end gap-4 pt-4">
-                  <Button variant="outline" onClick={() => navigate("/figurine")}>
-                    Annulla
-                  </Button>
-                  <Button onClick={handleSave}>
-                    {isNew ? "Crea Figurina" : "Salva Modifiche"}
-                  </Button>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </ScrollArea>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tipo">Tipo</Label>
+                  <Select
+                    value={formData.tipo}
+                    onValueChange={(value: "Standard" | "Speciale") =>
+                      setFormData({ ...formData, tipo: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Speciale">Speciale</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="frequenza">Frequenza (X/10)</Label>
+                  <Input
+                    id="frequenza"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={formData.frequenza}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
+                      })
+                    }
+                    placeholder="Frequenza"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Indica quante volte su 10 questa figurina può uscire
+                  </p>
+                </div>
+              </div>
+
+              <SyndicationSection
+                syndication={formData.syndication}
+                onChange={(syndication) => setFormData({ ...formData, syndication })}
+              />
+
+              <div className="flex justify-end gap-4 pt-4">
+                <Button variant="outline" onClick={handleCancel}>
+                  Annulla
+                </Button>
+                <Button onClick={handleSave}>
+                  {isNew ? "Crea Figurina" : "Salva Modifiche"}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

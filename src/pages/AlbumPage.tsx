@@ -85,7 +85,7 @@ export default function AlbumPage() {
       <AppHeader title="Gestione Album" breadcrumb="Album" />
       <PageHeader title="Album" />
       
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
         <Card>
           <CardHeader>
             <CardTitle>Archivio Album</CardTitle>
