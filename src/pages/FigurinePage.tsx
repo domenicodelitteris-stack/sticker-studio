@@ -73,6 +73,20 @@ export default function FigurinePage() {
                   placeholder="Cerca figurina..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="
+    rounded-none
+    border-0
+    border-b-2
+    bg-transparent
+    px-0
+    shadow-none
+    focus-visible:ring-0
+    focus-visible:ring-offset-0
+    border-muted-foreground/30
+    focus:border-b-4
+    focus:border-pink-500
+    transition-all duration-200
+  "
                 />
               </div>
               <Button variant="default" size="icon" aria-label="Cerca">

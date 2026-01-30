@@ -17,17 +17,23 @@ export default function PacchettoConfigPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>("pacchetti", []);
-  
+  const [pacchetti, setPacchetti] = useLocalStorage<Pacchetto[]>(
+    "pacchetti",
+    [],
+  );
+
   const isNew = pacchettoId === "new";
   const tipoFromUrl = searchParams.get("tipo") as "statico" | "dinamico" | null;
   const pacchetto = isNew ? null : pacchetti.find((p) => p.id === pacchettoId);
-  
+
   const [formData, setFormData] = useState({
     nome: pacchetto?.nome || "",
     numFigurine: pacchetto?.numFigurine || 1,
-    tipo: pacchetto?.tipo || tipoFromUrl || "statico" as "statico" | "dinamico",
-    syndication: pacchetto?.syndication || [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
+    tipo:
+      pacchetto?.tipo || tipoFromUrl || ("statico" as "statico" | "dinamico"),
+    syndication:
+      pacchetto?.syndication ||
+      ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
   });
 
   const handleSave = () => {
@@ -55,24 +61,35 @@ export default function PacchettoConfigPage() {
         description: `Il pacchetto "${formData.nome}" è stato creato`,
       });
     } else {
-      setPacchetti(pacchetti.map(p => 
-        p.id === pacchettoId 
-          ? { ...p, nome: formData.nome, numFigurine: formData.numFigurine, syndication: formData.syndication }
-          : p
-      ));
+      setPacchetti(
+        pacchetti.map((p) =>
+          p.id === pacchettoId
+            ? {
+                ...p,
+                nome: formData.nome,
+                numFigurine: formData.numFigurine,
+                syndication: formData.syndication,
+              }
+            : p,
+        ),
+      );
       toast({
         title: "Pacchetto salvato",
         description: `Il pacchetto "${formData.nome}" è stato aggiornato`,
       });
     }
-    
-    navigate("/pacchetti");
+    setTimeout(() => {
+      navigate("/pacchetti");
+    }, 1000);
   };
 
   if (!isNew && !pacchetto) {
     return (
       <>
-        <AppHeader title="Configurazione Pacchetto" breadcrumb="Pacchetti > Configurazione" />
+        <AppHeader
+          title="Configurazione Pacchetto"
+          breadcrumb="Pacchetti > Configurazione"
+        />
         <PageHeader title="Pacchetto non trovato" />
         <div className="flex-1 p-6">
           <Button onClick={() => navigate("/pacchetti")}>
@@ -84,15 +101,15 @@ export default function PacchettoConfigPage() {
     );
   }
 
-  const pageTitle = isNew 
+  const pageTitle = isNew
     ? `Nuovo Pacchetto ${formData.tipo === "statico" ? "Statico" : "Dinamico"}`
     : `Configurazione: ${pacchetto?.nome}`;
 
   return (
     <>
-      <AppHeader 
-        title="Configurazione Pacchetto" 
-        breadcrumb={`Pacchetti > ${isNew ? "Nuovo" : pacchetto?.nome}`} 
+      <AppHeader
+        title="Configurazione Pacchetto"
+        breadcrumb={`Pacchetti > ${isNew ? "Nuovo" : pacchetto?.nome}`}
       />
       <PageHeader title={pageTitle} />
 
@@ -116,8 +133,24 @@ export default function PacchettoConfigPage() {
                   <Input
                     id="nome"
                     value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nome: e.target.value })
+                    }
                     placeholder="Inserisci nome pacchetto"
+                    className="
+                          rounded-none
+                          border-0
+                          border-b-2
+                          bg-transparent
+                          px-0
+                          shadow-none
+                          focus-visible:ring-0
+                          focus-visible:ring-offset-0
+                          border-muted-foreground/30
+                          focus:border-b-4
+                          focus:border-pink-500
+                          transition-all duration-200
+                        "
                   />
                 </div>
                 <div className="space-y-2">
@@ -127,23 +160,49 @@ export default function PacchettoConfigPage() {
                     type="number"
                     min={1}
                     value={formData.numFigurine}
-                    onChange={(e) => setFormData({ ...formData, numFigurine: parseInt(e.target.value) || 1 })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        numFigurine: parseInt(e.target.value) || 1,
+                      })
+                    }
+                    className="
+                            rounded-none
+                            border-0
+                            border-b-2
+                            bg-transparent
+                            px-0
+                            shadow-none
+                            focus-visible:ring-0
+                            focus-visible:ring-offset-0
+                            border-muted-foreground/30
+                            focus:border-b-4
+                            focus:border-pink-500
+                            transition-all duration-200
+                          "
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>Tipo</Label>
-                <div className="text-sm text-muted-foreground capitalize">{formData.tipo}</div>
+                <div className="text-sm text-muted-foreground capitalize">
+                  {formData.tipo}
+                </div>
               </div>
 
               <SyndicationSection
                 syndication={formData.syndication}
-                onChange={(syndication) => setFormData({ ...formData, syndication })}
+                onChange={(syndication) =>
+                  setFormData({ ...formData, syndication })
+                }
               />
 
               <div className="flex justify-end gap-4 pt-4">
-                <Button variant="outline" onClick={() => navigate("/pacchetti")}>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/pacchetti")}
+                >
                   Annulla
                 </Button>
                 <Button onClick={handleSave}>

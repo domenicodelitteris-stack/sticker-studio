@@ -95,7 +95,13 @@ export function AppSidebar() {
                       >
                         <div className="flex items-center gap-3">
                           <item.icon className="h-5 w-5" />
-                          <span style={{ color: "black" }}>{item.title}</span>
+                          <span
+                            style={{
+                              color: isActive(item.url) ? "white" : "black",
+                            }}
+                          >
+                            {item.title}
+                          </span>
                         </div>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform ${openGroups[item.url.slice(1)] ? "rotate-180" : ""}`}

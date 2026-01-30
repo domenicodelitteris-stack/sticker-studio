@@ -16,7 +16,12 @@ import {
 } from "@/components/ui/select";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Figurina, Album, DEFAULT_SYNDICATION, SyndicationPlatform } from "@/types";
+import {
+  Figurina,
+  Album,
+  DEFAULT_SYNDICATION,
+  SyndicationPlatform,
+} from "@/types";
 import { SyndicationSection } from "@/components/SyndicationSection";
 
 export default function FigurinaConfigPage() {
@@ -36,7 +41,9 @@ export default function FigurinaConfigPage() {
     tipo: (figurina?.tipo || "Standard") as "Standard" | "Speciale",
     frequenza: figurina?.frequenza || 5,
     albumId: figurina?.albumId || preselectedAlbumId || "",
-    syndication: figurina?.syndication || [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
+    syndication:
+      figurina?.syndication ||
+      ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
   });
 
   const getNextNumero = (albumId: string) => {
@@ -66,10 +73,12 @@ export default function FigurinaConfigPage() {
     }
 
     // Determine where to navigate back
-    const returnUrl = preselectedAlbumId ? `/album/${preselectedAlbumId}` : "/figurine";
+    const returnUrl = preselectedAlbumId
+      ? `/album/${preselectedAlbumId}`
+      : "/figurine";
 
     if (isNew) {
-      console.log("ISNEW")
+      console.log("ISNEW");
       const newFigurina: Figurina = {
         id: crypto.randomUUID(),
         nome: formData.nome.trim(),
@@ -87,18 +96,20 @@ export default function FigurinaConfigPage() {
         description: `La figurina "${formData.nome}" è stata creata`,
       });
     } else {
-      setFigurine(figurine.map(f =>
-        f.id === figurinaId
-          ? {
-            ...f,
-            nome: formData.nome.trim(),
-            tipo: formData.tipo,
-            frequenza: formData.frequenza,
-            albumId: formData.albumId,
-            syndication: formData.syndication
-          }
-          : f
-      ));
+      setFigurine(
+        figurine.map((f) =>
+          f.id === figurinaId
+            ? {
+                ...f,
+                nome: formData.nome.trim(),
+                tipo: formData.tipo,
+                frequenza: formData.frequenza,
+                albumId: formData.albumId,
+                syndication: formData.syndication,
+              }
+            : f,
+        ),
+      );
       toast({
         title: "Figurina salvata",
         description: `La figurina "${formData.nome}" è stata aggiornata`,
@@ -107,18 +118,22 @@ export default function FigurinaConfigPage() {
     setTimeout(() => {
       navigate(returnUrl);
     }, 1000);
-
   };
 
   const handleCancel = () => {
-    const returnUrl = preselectedAlbumId ? `/album/${preselectedAlbumId}` : "/figurine";
+    const returnUrl = preselectedAlbumId
+      ? `/album/${preselectedAlbumId}`
+      : "/figurine";
     navigate(returnUrl);
   };
 
   if (!isNew && !figurina) {
     return (
       <>
-        <AppHeader title="Configurazione Figurina" breadcrumb="Figurine > Configurazione" />
+        <AppHeader
+          title="Configurazione Figurina"
+          breadcrumb="Figurine > Configurazione"
+        />
         <PageHeader title="Figurina non trovata" />
         <div className="flex-1 p-6">
           <Button onClick={() => navigate("/figurine")}>
@@ -136,7 +151,9 @@ export default function FigurinaConfigPage() {
         title="Configurazione Figurina"
         breadcrumb={`Figurine > ${isNew ? "Nuova" : figurina?.nome}`}
       />
-      <PageHeader title={isNew ? "Nuova Figurina" : `Configurazione: ${figurina?.nome}`} />
+      <PageHeader
+        title={isNew ? "Nuova Figurina" : `Configurazione: ${figurina?.nome}`}
+      />
 
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <div className="flex items-center gap-4">
@@ -158,17 +175,53 @@ export default function FigurinaConfigPage() {
                   <Input
                     id="nome"
                     value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nome: e.target.value })
+                    }
                     placeholder="Nome figurina"
+                    className="
+                            rounded-none
+                            border-0
+                            border-b-2
+                            bg-transparent
+                            px-0
+                            shadow-none
+                            focus-visible:ring-0
+                            focus-visible:ring-offset-0
+                            border-muted-foreground/30
+                            focus:border-b-4
+                            focus:border-pink-500
+                            transition-all duration-200
+                          "
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="album">Album</Label>
                   <Select
                     value={formData.albumId}
-                    onValueChange={(value) => setFormData({ ...formData, albumId: value })}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, albumId: value })
+                    }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className="
+                          rounded-none
+                          border-0
+                          border-b-2
+                          border-muted-foreground/30
+                          bg-transparent
+                          px-0
+                          shadow-none
+                          focus-visible:ring-0
+                          focus-visible:ring-offset-0
+                          focus:ring-0
+                          focus:ring-offset-0
+                          focus:outline-none
+                          focus:border-b-4
+                          focus:border-b-pink-500
+                          transition-all duration-200
+                        "
+                    >
                       <SelectValue placeholder="Seleziona album" />
                     </SelectTrigger>
                     <SelectContent>
@@ -197,7 +250,25 @@ export default function FigurinaConfigPage() {
                       setFormData({ ...formData, tipo: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className="
+                          rounded-none
+                          border-0
+                          border-b-2
+                          border-muted-foreground/30
+                          bg-transparent
+                          px-0
+                          shadow-none
+                          focus-visible:ring-0
+                          focus-visible:ring-offset-0
+                          focus:ring-0
+                          focus:ring-offset-0
+                          focus:outline-none
+                          focus:border-b-4
+                          focus:border-b-pink-500
+                          transition-all duration-200
+                        "
+                    >
                       <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -217,9 +288,29 @@ export default function FigurinaConfigPage() {
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        frequenza: Math.min(10, Math.max(1, parseInt(e.target.value) || 1)),
+                        frequenza: Math.min(
+                          10,
+                          Math.max(1, parseInt(e.target.value) || 1),
+                        ),
                       })
                     }
+                    className="
+                          rounded-none
+                          border-0
+                          border-b-2
+                          border-muted-foreground/30
+                          bg-transparent
+                          px-0
+                          shadow-none
+                          focus-visible:ring-0
+                          focus-visible:ring-offset-0
+                          focus:ring-0
+                          focus:ring-offset-0
+                          focus:outline-none
+                          focus:border-b-4
+                          focus:border-b-pink-500
+                          transition-all duration-200
+                        "
                     placeholder="Frequenza"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -230,7 +321,9 @@ export default function FigurinaConfigPage() {
 
               <SyndicationSection
                 syndication={formData.syndication}
-                onChange={(syndication) => setFormData({ ...formData, syndication })}
+                onChange={(syndication) =>
+                  setFormData({ ...formData, syndication })
+                }
               />
 
               <div className="flex justify-end gap-4 pt-4">

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Pencil, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowLeft, Save, Loader2 } from "lucide-react";
+
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -22,25 +23,71 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Figurina, Album, DEFAULT_SYNDICATION } from "@/types";
+import {
+  Figurina,
+  Album,
+  DEFAULT_SYNDICATION,
+  SyndicationPlatform,
+} from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
+import { SyndicationSection } from "@/components/SyndicationSection";
 
 export default function AlbumConfigPage() {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
-  const [albums] = useLocalStorage<Album[]>("album", []);
+
+  const [albums, setAlbums] = useLocalStorage<Album[]>("album", []);
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const album = albums.find((a) => a.id === albumId);
-  const albumFigurine = figurine.filter((f) => f.albumId === albumId);
+  const album = useMemo(
+    () => albums.find((a) => a.id === albumId),
+    [albums, albumId],
+  );
+  const albumFigurine = useMemo(
+    () => figurine.filter((f) => f.albumId === albumId),
+    [figurine, albumId],
+  );
+  const [albumDraftSyndication, setAlbumDraftSyndication] =
+    useState<SyndicationPlatform[]>(DEFAULT_SYNDICATION);
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  useEffect(() => {
+    if (!album) return;
+    setAlbumDraftSyndication(
+      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION,
+    );
+    // reset feedback quando cambi album
+    setIsSaving(false);
+    setJustSaved(false);
+  }, [album?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = () => {
     if (!deleteId) return;
     setFigurine(figurine.filter((f) => f.id !== deleteId));
     setDeleteId(null);
+  };
+  const saveAlbumSyndication = async () => {
+    if (!albumId) return;
+
+    setIsSaving(true);
+    setJustSaved(false);
+
+    setAlbums(
+      albums.map((a) =>
+        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a,
+      ),
+    );
+    await new Promise((r) => setTimeout(r, 450));
+
+    setIsSaving(false);
+    setJustSaved(true);
+    window.setTimeout(() => setJustSaved(false), 1200);
   };
 
   if (!album) {
@@ -199,6 +246,46 @@ export default function AlbumConfigPage() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle>Syndication Album</CardTitle>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-start gap-4">
+              <div className="text-sm text-muted-foreground">
+                Stato attuale:
+              </div>
+              <SyndicationStatusIcons
+                syndication={albumDraftSyndication || DEFAULT_SYNDICATION}
+              />
+            </div>
+
+            <SyndicationSection
+              syndication={albumDraftSyndication}
+              onChange={setAlbumDraftSyndication}
+            />
+            <div className="flex justify-end pt-2">
+              <Button onClick={saveAlbumSyndication} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvataggio...
+                  </>
+                ) : justSaved ? (
+                  <>Salvato ✓</>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salva
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
