@@ -193,8 +193,7 @@ export default function AlbumConfigPage() {
                   <TableHead>ID</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Frequenza</TableHead>
-                  <TableHead>Syndication</TableHead>
+                  <TableHead>Link</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
@@ -202,7 +201,7 @@ export default function AlbumConfigPage() {
                 {albumFigurine.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="text-center text-muted-foreground py-8"
                     >
                       Nessuna figurina trovata
@@ -216,13 +215,8 @@ export default function AlbumConfigPage() {
                       </TableCell>
                       <TableCell>{figurina.nome}</TableCell>
                       <TableCell>{figurina.tipo}</TableCell>
-                      <TableCell>{figurina.frequenza}/10</TableCell>
-                      <TableCell>
-                        <SyndicationStatusIcons
-                          syndication={
-                            figurina.syndication || DEFAULT_SYNDICATION
-                          }
-                        />
+                      <TableCell className="max-w-[200px] truncate">
+                        {figurina.link || "—"}
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button

@@ -16,13 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Figurina,
-  Album,
-  DEFAULT_SYNDICATION,
-  SyndicationPlatform,
-} from "@/types";
-import { SyndicationSection } from "@/components/SyndicationSection";
+import { Figurina, Album } from "@/types";
 
 export default function FigurinaConfigPage() {
   const { figurinaId } = useParams<{ figurinaId: string }>();
@@ -39,11 +33,8 @@ export default function FigurinaConfigPage() {
   const [formData, setFormData] = useState({
     nome: figurina?.nome || "",
     tipo: (figurina?.tipo || "Standard") as "Standard" | "Speciale",
-    frequenza: figurina?.frequenza || 5,
+    link: figurina?.link || "",
     albumId: figurina?.albumId || preselectedAlbumId || "",
-    syndication:
-      figurina?.syndication ||
-      ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
   });
 
   const getNextNumero = (albumId: string) => {
@@ -78,15 +69,13 @@ export default function FigurinaConfigPage() {
       : "/figurine";
 
     if (isNew) {
-      console.log("ISNEW");
       const newFigurina: Figurina = {
         id: crypto.randomUUID(),
         nome: formData.nome.trim(),
         numero: getNextNumero(formData.albumId),
         tipo: formData.tipo,
-        frequenza: formData.frequenza,
+        link: formData.link.trim(),
         albumId: formData.albumId,
-        syndication: formData.syndication,
         createdAt: new Date(),
       };
 
@@ -103,9 +92,8 @@ export default function FigurinaConfigPage() {
                 ...f,
                 nome: formData.nome.trim(),
                 tipo: formData.tipo,
-                frequenza: formData.frequenza,
+                link: formData.link.trim(),
                 albumId: formData.albumId,
-                syndication: formData.syndication,
               }
             : f,
         ),
@@ -278,21 +266,13 @@ export default function FigurinaConfigPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="frequenza">Frequenza (X/10)</Label>
+                  <Label htmlFor="link">Link Immagine</Label>
                   <Input
-                    id="frequenza"
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={formData.frequenza}
+                    id="link"
+                    type="text"
+                    value={formData.link}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        frequenza: Math.min(
-                          10,
-                          Math.max(1, parseInt(e.target.value) || 1),
-                        ),
-                      })
+                      setFormData({ ...formData, link: e.target.value })
                     }
                     className="
                           rounded-none
@@ -311,20 +291,13 @@ export default function FigurinaConfigPage() {
                           focus:border-b-pink-500
                           transition-all duration-200
                         "
-                    placeholder="Frequenza"
+                    placeholder="https://esempio.com/immagine.jpg"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Indica quante volte su 10 questa figurina può uscire
+                    Inserisci l'URL dell'immagine della figurina
                   </p>
                 </div>
               </div>
-
-              <SyndicationSection
-                syndication={formData.syndication}
-                onChange={(syndication) =>
-                  setFormData({ ...formData, syndication })
-                }
-              />
 
               <div className="flex justify-end gap-4 pt-4">
                 <Button variant="outline" onClick={handleCancel}>
