@@ -24,13 +24,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Figurina, Album } from "@/types";
+import { Figurina, Pagina, Album } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function FigurinePage() {
   const navigate = useNavigate();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
-  const [album] = useLocalStorage<Album[]>("album", []);
+  const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
+  const [albums] = useLocalStorage<Album[]>("album", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -44,9 +45,11 @@ export default function FigurinePage() {
     setDeleteId(null);
   };
 
-  const getAlbumName = (albumId: string) => {
-    const a = album.find((a) => a.id === albumId);
-    return a?.nome || "N/A";
+  const getPaginaName = (paginaId: string) => {
+    const p = pagine.find((p) => p.id === paginaId);
+    if (!p) return "N/A";
+    const a = albums.find((a) => a.id === p.albumId);
+    return `${a?.nome || "?"} - ${p.nome}`;
   };
 
   return (

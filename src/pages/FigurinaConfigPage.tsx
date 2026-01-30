@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ImageIcon } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Figurina, Album } from "@/types";
+import { Figurina, Pagina, Album } from "@/types";
 
 export default function FigurinaConfigPage() {
   const { figurinaId } = useParams<{ figurinaId: string }>();
@@ -24,24 +24,34 @@ export default function FigurinaConfigPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
-  const [album] = useLocalStorage<Album[]>("album", []);
+  const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
+  const [albums] = useLocalStorage<Album[]>("album", []);
 
   const isNew = figurinaId === "new";
   const figurina = isNew ? null : figurine.find((f) => f.id === figurinaId);
-  const preselectedAlbumId = searchParams.get("albumId");
+  const preselectedPaginaId = searchParams.get("paginaId");
 
   const [formData, setFormData] = useState({
     nome: figurina?.nome || "",
     tipo: (figurina?.tipo || "Standard") as "Standard" | "Speciale",
     link: figurina?.link || "",
-    albumId: figurina?.albumId || preselectedAlbumId || "",
+    paginaId: figurina?.paginaId || preselectedPaginaId || "",
   });
 
-  const getNextNumero = (albumId: string) => {
-    const albumFigurine = figurine.filter((f) => f.albumId === albumId);
-    const numeri = albumFigurine.map((f) => f.numero);
+  const selectedPagina = pagine.find((p) => p.id === formData.paginaId);
+  const selectedAlbum = albums.find((a) => a.id === selectedPagina?.albumId);
+
+  const getNextNumero = (paginaId: string) => {
+    const paginaFigurine = figurine.filter((f) => f.paginaId === paginaId);
+    const numeri = paginaFigurine.map((f) => f.numero);
     if (numeri.length === 0) return 1;
     return Math.max(...numeri) + 1;
+  };
+
+  const getNextOrdine = (paginaId: string) => {
+    const paginaFigurine = figurine.filter((f) => f.paginaId === paginaId);
+    if (paginaFigurine.length === 0) return 1;
+    return Math.max(...paginaFigurine.map((f) => f.ordine || 0)) + 1;
   };
 
   const handleSave = () => {
@@ -54,28 +64,28 @@ export default function FigurinaConfigPage() {
       return;
     }
 
-    if (!formData.albumId) {
+    if (!formData.paginaId) {
       toast({
         title: "Errore",
-        description: "Seleziona un album",
+        description: "Seleziona una pagina",
         variant: "destructive",
       });
       return;
     }
 
-    // Determine where to navigate back
-    const returnUrl = preselectedAlbumId
-      ? `/album/${preselectedAlbumId}`
+    const returnUrl = preselectedPaginaId
+      ? `/pagine/${preselectedPaginaId}`
       : "/figurine";
 
     if (isNew) {
       const newFigurina: Figurina = {
         id: crypto.randomUUID(),
         nome: formData.nome.trim(),
-        numero: getNextNumero(formData.albumId),
+        numero: getNextNumero(formData.paginaId),
         tipo: formData.tipo,
         link: formData.link.trim(),
-        albumId: formData.albumId,
+        paginaId: formData.paginaId,
+        ordine: getNextOrdine(formData.paginaId),
         createdAt: new Date(),
       };
 
@@ -93,10 +103,10 @@ export default function FigurinaConfigPage() {
                 nome: formData.nome.trim(),
                 tipo: formData.tipo,
                 link: formData.link.trim(),
-                albumId: formData.albumId,
+                paginaId: formData.paginaId,
               }
-            : f,
-        ),
+            : f
+        )
       );
       toast({
         title: "Figurina salvata",
@@ -105,12 +115,12 @@ export default function FigurinaConfigPage() {
     }
     setTimeout(() => {
       navigate(returnUrl);
-    }, 1000);
+    }, 500);
   };
 
   const handleCancel = () => {
-    const returnUrl = preselectedAlbumId
-      ? `/album/${preselectedAlbumId}`
+    const returnUrl = preselectedPaginaId
+      ? `/pagine/${preselectedPaginaId}`
       : "/figurine";
     navigate(returnUrl);
   };
@@ -147,7 +157,7 @@ export default function FigurinaConfigPage() {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {preselectedAlbumId ? "Torna all'Album" : "Torna alle Figurine"}
+            {preselectedPaginaId ? "Torna alla Pagina" : "Torna alle Figurine"}
           </Button>
         </div>
 
@@ -167,65 +177,42 @@ export default function FigurinaConfigPage() {
                       setFormData({ ...formData, nome: e.target.value })
                     }
                     placeholder="Nome figurina"
-                    className="
-                            rounded-none
-                            border-0
-                            border-b-2
-                            bg-transparent
-                            px-0
-                            shadow-none
-                            focus-visible:ring-0
-                            focus-visible:ring-offset-0
-                            border-muted-foreground/30
-                            focus:border-b-4
-                            focus:border-pink-500
-                            transition-all duration-200
-                          "
+                    className="rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 border-muted-foreground/30 focus:border-b-4 focus:border-pink-500 transition-all duration-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="album">Album</Label>
+                  <Label htmlFor="pagina">Pagina</Label>
                   <Select
-                    value={formData.albumId}
+                    value={formData.paginaId}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, albumId: value })
+                      setFormData({ ...formData, paginaId: value })
                     }
                   >
-                    <SelectTrigger
-                      className="
-                          rounded-none
-                          border-0
-                          border-b-2
-                          border-muted-foreground/30
-                          bg-transparent
-                          px-0
-                          shadow-none
-                          focus-visible:ring-0
-                          focus-visible:ring-offset-0
-                          focus:ring-0
-                          focus:ring-offset-0
-                          focus:outline-none
-                          focus:border-b-4
-                          focus:border-b-pink-500
-                          transition-all duration-200
-                        "
-                    >
-                      <SelectValue placeholder="Seleziona album" />
+                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
+                      <SelectValue placeholder="Seleziona pagina" />
                     </SelectTrigger>
                     <SelectContent>
-                      {album.length === 0 ? (
+                      {pagine.length === 0 ? (
                         <SelectItem value="none" disabled>
-                          Nessun album disponibile
+                          Nessuna pagina disponibile
                         </SelectItem>
                       ) : (
-                        album.map((a) => (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.nome}
-                          </SelectItem>
-                        ))
+                        pagine.map((p) => {
+                          const pAlbum = albums.find((a) => a.id === p.albumId);
+                          return (
+                            <SelectItem key={p.id} value={p.id}>
+                              {pAlbum?.nome} - {p.nome}
+                            </SelectItem>
+                          );
+                        })
                       )}
                     </SelectContent>
                   </Select>
+                  {selectedPagina && selectedAlbum && (
+                    <p className="text-xs text-muted-foreground">
+                      Album: {selectedAlbum.nome}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -238,25 +225,7 @@ export default function FigurinaConfigPage() {
                       setFormData({ ...formData, tipo: value })
                     }
                   >
-                    <SelectTrigger
-                      className="
-                          rounded-none
-                          border-0
-                          border-b-2
-                          border-muted-foreground/30
-                          bg-transparent
-                          px-0
-                          shadow-none
-                          focus-visible:ring-0
-                          focus-visible:ring-offset-0
-                          focus:ring-0
-                          focus:ring-offset-0
-                          focus:outline-none
-                          focus:border-b-4
-                          focus:border-b-pink-500
-                          transition-all duration-200
-                        "
-                    >
+                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
                       <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -274,30 +243,32 @@ export default function FigurinaConfigPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, link: e.target.value })
                     }
-                    className="
-                          rounded-none
-                          border-0
-                          border-b-2
-                          border-muted-foreground/30
-                          bg-transparent
-                          px-0
-                          shadow-none
-                          focus-visible:ring-0
-                          focus-visible:ring-offset-0
-                          focus:ring-0
-                          focus:ring-offset-0
-                          focus:outline-none
-                          focus:border-b-4
-                          focus:border-b-pink-500
-                          transition-all duration-200
-                        "
+                    className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200"
                     placeholder="https://esempio.com/immagine.jpg"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Inserisci l'URL dell'immagine della figurina
-                  </p>
                 </div>
               </div>
+
+              {formData.link && (
+                <div className="space-y-2">
+                  <Label>Preview Immagine</Label>
+                  <div className="border rounded-lg overflow-hidden w-32">
+                    <img
+                      src={formData.link}
+                      alt="Preview figurina"
+                      className="w-full aspect-[3/4] object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        target.nextElementSibling?.classList.remove("hidden");
+                      }}
+                    />
+                    <div className="hidden w-full aspect-[3/4] bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-end gap-4 pt-4">
                 <Button variant="outline" onClick={handleCancel}>
