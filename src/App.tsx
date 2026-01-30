@@ -9,6 +9,7 @@ import FigurinePage from "./pages/FigurinePage";
 import FigurinaConfigPage from "./pages/FigurinaConfigPage";
 import AlbumPage from "./pages/AlbumPage";
 import AlbumConfigPage from "./pages/AlbumConfigPage";
+import PaginaConfigPage from "./pages/PaginaConfigPage";
 import PacchettiPage from "./pages/PacchettiPage";
 import PacchettoConfigPage from "./pages/PacchettoConfigPage";
 import NotFound from "./pages/NotFound";
@@ -26,19 +27,13 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/figurine" element={<FigurinePage />} />
-            <Route
-              path="/figurine/:figurinaId"
-              element={<FigurinaConfigPage />}
-            />
+            <Route path="/figurine/:figurinaId" element={<FigurinaConfigPage />} />
             <Route path="/album" element={<AlbumPage />} />
             <Route path="/album/:albumId" element={<AlbumConfigPage />} />
             <Route path="/album/new" element={<AlbumCreatePage />} />
-
+            <Route path="/pagine/:paginaId" element={<PaginaConfigPage />} />
             <Route path="/pacchetti" element={<PacchettiPage />} />
-            <Route
-              path="/pacchetti/:pacchettoId"
-              element={<PacchettoConfigPage />}
-            />
+            <Route path="/pacchetti/:pacchettoId" element={<PacchettoConfigPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

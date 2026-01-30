@@ -12,13 +12,23 @@ export const DEFAULT_SYNDICATION: SyndicationPlatform[] = [
   { platform: "Smart TV", isPublished: false, startDate: null, endDate: null },
 ];
 
+export interface Pagina {
+  id: string;
+  nome: string;
+  backgroundLink: string;
+  albumId: string;
+  ordine: number;
+  createdAt: Date;
+}
+
 export interface Figurina {
   id: string;
   nome: string;
   numero: number;
   tipo: "Standard" | "Speciale";
   link: string;
-  albumId: string;
+  paginaId: string;
+  ordine: number;
   createdAt: Date;
 }
 

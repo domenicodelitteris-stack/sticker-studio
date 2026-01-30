@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Pencil, ArrowLeft, Save, Loader2 } from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowLeft, Save, Loader2, ArrowUp, ArrowDown, ImageIcon } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -26,7 +26,7 @@ import {
 
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
-  Figurina,
+  Pagina,
   Album,
   DEFAULT_SYNDICATION,
   SyndicationPlatform,
@@ -40,17 +40,22 @@ export default function AlbumConfigPage() {
   const navigate = useNavigate();
 
   const [albums, setAlbums] = useLocalStorage<Album[]>("album", []);
-  const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
+  const [pagine, setPagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const album = useMemo(
     () => albums.find((a) => a.id === albumId),
-    [albums, albumId],
+    [albums, albumId]
   );
-  const albumFigurine = useMemo(
-    () => figurine.filter((f) => f.albumId === albumId),
-    [figurine, albumId],
+
+  const albumPagine = useMemo(
+    () =>
+      pagine
+        .filter((p) => p.albumId === albumId)
+        .sort((a, b) => (a.ordine || 0) - (b.ordine || 0)),
+    [pagine, albumId]
   );
+
   const [albumDraftSyndication, setAlbumDraftSyndication] =
     useState<SyndicationPlatform[]>(DEFAULT_SYNDICATION);
 
@@ -60,18 +65,37 @@ export default function AlbumConfigPage() {
   useEffect(() => {
     if (!album) return;
     setAlbumDraftSyndication(
-      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION,
+      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION
     );
-    // reset feedback quando cambi album
     setIsSaving(false);
     setJustSaved(false);
-  }, [album?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [album?.id]);
 
   const handleDelete = () => {
     if (!deleteId) return;
-    setFigurine(figurine.filter((f) => f.id !== deleteId));
+    setPagine(pagine.filter((p) => p.id !== deleteId));
     setDeleteId(null);
   };
+
+  const movePagina = (paginaId: string, direction: "up" | "down") => {
+    const idx = albumPagine.findIndex((p) => p.id === paginaId);
+    if (idx === -1) return;
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === albumPagine.length - 1) return;
+
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    const currentOrdine = albumPagine[idx].ordine;
+    const swapOrdine = albumPagine[swapIdx].ordine;
+
+    setPagine(
+      pagine.map((p) => {
+        if (p.id === albumPagine[idx].id) return { ...p, ordine: swapOrdine };
+        if (p.id === albumPagine[swapIdx].id) return { ...p, ordine: currentOrdine };
+        return p;
+      })
+    );
+  };
+
   const saveAlbumSyndication = async () => {
     if (!albumId) return;
 
@@ -80,8 +104,8 @@ export default function AlbumConfigPage() {
 
     setAlbums(
       albums.map((a) =>
-        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a,
-      ),
+        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a
+      )
     );
     await new Promise((r) => setTimeout(r, 450));
 
@@ -126,110 +150,89 @@ export default function AlbumConfigPage() {
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Figurine ({albumFigurine.length} elementi)</CardTitle>
-            <Button
-              onClick={() => navigate(`/figurine/new?albumId=${albumId}`)}
-            >
+            <CardTitle>Pagine ({albumPagine.length} elementi)</CardTitle>
+            <Button onClick={() => navigate(`/pagine/new?albumId=${albumId}`)}>
               <Plus className="h-4 w-4 mr-2" />
-              Inserisci figurina
+              Aggiungi pagina
             </Button>
           </CardHeader>
           <CardContent>
-            {/* Griglia visiva delle figurine */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))",
-                gap: "80px",
-              }}
-            >
-              {albumFigurine.map((figurina) => (
-                <div
-                  key={figurina.id}
-                  onClick={() => navigate(`/figurine/${figurina.id}`)}
-                  style={{
-                    width: "150px",
-                    aspectRatio: "3 / 4",
-                    border: "2px solid #eab308",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "white",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s",
-                  }}
-                >
-                  <div style={{ textAlign: "center", padding: "4px" }}>
-                    <div style={{ fontWeight: "bold", fontSize: "14px" }}>
-                      {figurina.numero}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "#666",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {figurina.nome}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {albumFigurine.length === 0 && (
-                <div className="col-span-5 text-center text-muted-foreground py-8">
-                  Nessuna figurina inserita. Clicca "Inserisci figurina" per
-                  iniziare.
-                </div>
-              )}
-            </div>
-
-            {/* Tabella dettagliata */}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead className="w-[80px]">Ordine</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Link</TableHead>
+                  <TableHead>Background</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {albumFigurine.length === 0 ? (
+                {albumPagine.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={4}
                       className="text-center text-muted-foreground py-8"
                     >
-                      Nessuna figurina trovata
+                      Nessuna pagina trovata. Clicca "Aggiungi pagina" per iniziare.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  albumFigurine.map((figurina) => (
-                    <TableRow key={figurina.id}>
-                      <TableCell className="font-medium">
-                        {figurina.numero}
+                  albumPagine.map((pagina, idx) => (
+                    <TableRow key={pagina.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => movePagina(pagina.id, "up")}
+                            disabled={idx === 0}
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => movePagina(pagina.id, "down")}
+                            disabled={idx === albumPagine.length - 1}
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </Button>
+                          <span className="text-xs text-muted-foreground ml-1">
+                            {pagina.ordine}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell>{figurina.nome}</TableCell>
-                      <TableCell>{figurina.tipo}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {figurina.link || "—"}
+                      <TableCell className="font-medium">{pagina.nome}</TableCell>
+                      <TableCell>
+                        {pagina.backgroundLink ? (
+                          <img
+                            src={pagina.backgroundLink}
+                            alt={pagina.nome}
+                            className="w-16 h-10 object-cover rounded border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-10 bg-muted rounded border flex items-center justify-center">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/figurine/${figurina.id}`)}
+                          onClick={() => navigate(`/pagine/${pagina.id}`)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteId(figurina.id)}
+                          onClick={() => setDeleteId(pagina.id)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -242,6 +245,7 @@ export default function AlbumConfigPage() {
             </Table>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex-row items-center justify-between gap-4">
             <div className="space-y-1">
@@ -251,9 +255,7 @@ export default function AlbumConfigPage() {
 
           <CardContent className="space-y-4">
             <div className="flex items-center justify-start gap-4">
-              <div className="text-sm text-muted-foreground">
-                Stato attuale:
-              </div>
+              <div className="text-sm text-muted-foreground">Stato attuale:</div>
               <SyndicationStatusIcons
                 syndication={albumDraftSyndication || DEFAULT_SYNDICATION}
               />
@@ -289,15 +291,13 @@ export default function AlbumConfigPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questa figurina? Questa azione non
-              può essere annullata.
+              Sei sicuro di voler eliminare questa pagina? Questa azione non può
+              essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Elimina
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
