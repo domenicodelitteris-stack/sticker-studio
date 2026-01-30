@@ -17,9 +17,8 @@ export interface Figurina {
   nome: string;
   numero: number;
   tipo: "Standard" | "Speciale";
-  frequenza: number; // es: 3 significa 3/10
+  link: string;
   albumId: string;
-  syndication: SyndicationPlatform[];
   createdAt: Date;
 }
 

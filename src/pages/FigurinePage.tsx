@@ -24,10 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Figurina, Album, DEFAULT_SYNDICATION } from "@/types";
+import { Figurina, Album } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+
 export default function FigurinePage() {
   const navigate = useNavigate();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
@@ -106,8 +105,7 @@ export default function FigurinePage() {
                   <TableHead>ID</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Frequenza</TableHead>
-                  <TableHead>Syndication</TableHead>
+                  <TableHead>Link</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
@@ -116,7 +114,7 @@ export default function FigurinePage() {
                 {filteredFigurine.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={5}
                       className="text-center text-muted-foreground py-8"
                     >
                       Nessuna figurina trovata
@@ -130,13 +128,8 @@ export default function FigurinePage() {
                       </TableCell>
                       <TableCell>{figurina.nome}</TableCell>
                       <TableCell>{figurina.tipo}</TableCell>
-                      <TableCell>{figurina.frequenza}/10</TableCell>
-                      <TableCell>
-                        <SyndicationStatusIcons
-                          syndication={
-                            figurina.syndication || DEFAULT_SYNDICATION
-                          }
-                        />
+                      <TableCell className="max-w-[200px] truncate">
+                        {figurina.link || "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
