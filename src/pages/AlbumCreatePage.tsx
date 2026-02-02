@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ImageIcon, Upload, X } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,68 @@ export default function AlbumCreatePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [album, setAlbum] = useLocalStorage<Album[]>("album", []);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     nome: "",
     anno: new Date().getFullYear(),
     syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
+    logo: "",
+    logoFileName: "",
   });
+
+  const openLogoPicker = () => logoInputRef.current?.click();
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "File non valido",
+        description: "Seleziona un file immagine (PNG, JPG, WEBP...)",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_MB = 2;
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_MB) {
+      toast({
+        title: "Immagine troppo grande",
+        description: `Scegli un'immagine più piccola di ${MAX_MB}MB`,
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setFormData((prev) => ({
+        ...prev,
+        logo: result,
+        logoFileName: file.name,
+      }));
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Errore",
+        description: "Non sono riuscito a leggere il file",
+        variant: "destructive",
+      });
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData((prev) => ({ ...prev, logo: "", logoFileName: "" }));
+  };
 
   const handleSave = () => {
     if (!formData.nome.trim()) {
@@ -38,8 +94,12 @@ export default function AlbumCreatePage() {
       nome: formData.nome.trim(),
       anno: formData.anno,
       syndication: formData.syndication,
+      ...(formData.logo ? { logo: formData.logo } : {}),
+      ...(formData.logo
+        ? ({ logoFileName: formData.logoFileName } as any)
+        : {}),
       createdAt: new Date(),
-    };
+    } as any;
 
     setAlbum((prev) => [...prev, albumItem]);
 
@@ -52,6 +112,10 @@ export default function AlbumCreatePage() {
       navigate("/album");
     }, 1000);
   };
+
+  const logoFileLabel =
+    formData.logoFileName ||
+    (formData.logo ? "Logo salvato" : "Nessun file selezionato");
 
   return (
     <>
@@ -72,48 +136,76 @@ export default function AlbumCreatePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nome: e.target.value })
-                  }
-                  placeholder="Nome album"
-                  className="
-    rounded-none
-    border-0
-    border-b-2
-    bg-transparent
-    px-0
-    shadow-none
-    focus-visible:ring-0
-    focus-visible:ring-offset-0
-    border-muted-foreground/30
-    focus:border-b-4
-    focus:border-pink-500
-    transition-all duration-200
-  "
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                  <Label htmlFor="nome">Nome</Label>
+                  <Input
+                    id="nome"
+                    value={formData.nome}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nome: e.target.value })
+                    }
+                    placeholder="Nome album"
+                    className="
+                      rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none
+                      focus-visible:ring-0 focus-visible:ring-offset-0
+                      border-muted-foreground/30 focus:border-b-4 focus:border-pink-500
+                      transition-all duration-200
+                    "
+                  />
+                </div>
 
-              {/* <div className="space-y-2">
-                <Label htmlFor="anno">Anno</Label>
-                <Input
-                  id="anno"
-                  type="number"
-                  value={formData.anno}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      anno:
-                        parseInt(e.target.value) || new Date().getFullYear(),
-                    })
-                  }
-                  placeholder="Anno"
-                />
-              </div> */}
+                <div className="space-y-2">
+                  <Label>LogoAlbum</Label>
+
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                  />
+
+                  <div className="flex items-center gap-3">
+                    <Button type="button" onClick={openLogoPicker}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Carica logo
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">
+                      {logoFileLabel}
+                    </span>
+
+                    {formData.logo && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveLogo}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Rimuovi
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="mt-2 border rounded-lg overflow-hidden w-32">
+                    {formData.logo ? (
+                      <img
+                        src={formData.logo}
+                        alt="Logo album"
+                        className="w-full aspect-square object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               <SyndicationSection
                 syndication={formData.syndication}

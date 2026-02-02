@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, QrCode, Search } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -38,10 +38,17 @@ export default function PacchettiPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [pageSize, setPageSize] = useState<number>(10);
 
-  const filteredPacchetti = pacchetti.filter((p) =>
-    p.nome.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredPacchetti = useMemo(() => {
+    return pacchetti.filter((p) =>
+      p.nome.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [pacchetti, searchQuery]);
+
+  const visiblePacchetti = useMemo(() => {
+    return filteredPacchetti.slice(0, pageSize);
+  }, [filteredPacchetti, pageSize]);
 
   const handleDelete = () => {
     if (deleteId) {
@@ -71,7 +78,41 @@ export default function PacchettiPage() {
         <Card>
           <CardHeader className="space-y-3">
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <CardTitle>Pacchetti</CardTitle>
+              <div className="space-y-2">
+                <CardTitle>Pacchetti</CardTitle>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Visualizza</span>
+                  <select
+                    className="
+                      h-8
+                      bg-transparent
+                      border-0
+                      border-b
+                      border-muted-foreground/40
+                      rounded-none
+                      px-1
+                      text-sm
+                      focus:outline-none
+                      focus:ring-0
+                      cursor-pointer
+                    "
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                  >
+                    <option value={10}>10</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span>elementi</span>
+
+                  {filteredPacchetti.length > pageSize ? (
+                    <span className="ml-2 text-xs">
+                      (Mostrati {visiblePacchetti.length} di{" "}
+                      {filteredPacchetti.length})
+                    </span>
+                  ) : null}
+                </div>
+              </div>
 
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -120,10 +161,6 @@ export default function PacchettiPage() {
           </CardHeader>
 
           <CardContent>
-            <div className="mb-3 text-sm text-muted-foreground">
-              Contenuti ({filteredPacchetti.length} elementi)
-            </div>
-
             <Table>
               <TableHeader>
                 <TableRow>
@@ -146,7 +183,7 @@ export default function PacchettiPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPacchetti.map((pacchetto) => (
+                  visiblePacchetti.map((pacchetto) => (
                     <TableRow key={pacchetto.id}>
                       <TableCell className="font-medium">
                         {pacchetto.nome}

@@ -110,7 +110,7 @@ export function SyndicationSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Syndications</h3>
+      {/* <h3 className="text-lg font-semibold">Syndications</h3> */}
 
       <div className="flex items-center space-x-2">
         <Checkbox

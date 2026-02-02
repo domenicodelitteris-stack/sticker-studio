@@ -40,6 +40,11 @@ export interface Album {
   createdAt: Date;
 }
 
+export interface PacchettoFigurina {
+  figurinaId: string;
+  ordine: number;
+}
+
 export interface Pacchetto {
   id: string;
   nome: string;
@@ -47,4 +52,6 @@ export interface Pacchetto {
   tipo: "statico" | "dinamico";
   syndication: SyndicationPlatform[];
   createdAt: Date;
+  albumId?: string;
+  figurine?: PacchettoFigurina[];
 }

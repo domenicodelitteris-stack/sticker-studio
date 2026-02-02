@@ -1,6 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Trash2, Pencil, ArrowLeft, Save, Loader2, ArrowUp, ArrowDown, ImageIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  ArrowLeft,
+  Save,
+  Loader2,
+  ImageIcon,
+} from "lucide-react";
 
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -32,7 +40,6 @@ import {
   SyndicationPlatform,
 } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SyndicationStatusIcons } from "@/components/SyndicationStatusIcons";
 import { SyndicationSection } from "@/components/SyndicationSection";
 
 export default function AlbumConfigPage() {
@@ -43,9 +50,12 @@ export default function AlbumConfigPage() {
   const [pagine, setPagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // ✅ Nuovo: quante righe mostrare
+  const [pageSize, setPageSize] = useState<number>(10);
+
   const album = useMemo(
     () => albums.find((a) => a.id === albumId),
-    [albums, albumId]
+    [albums, albumId],
   );
 
   const albumPagine = useMemo(
@@ -53,7 +63,13 @@ export default function AlbumConfigPage() {
       pagine
         .filter((p) => p.albumId === albumId)
         .sort((a, b) => (a.ordine || 0) - (b.ordine || 0)),
-    [pagine, albumId]
+    [pagine, albumId],
+  );
+
+  // ✅ Nuovo: lista pagine "visibili" (10/50/100)
+  const visiblePagine = useMemo(
+    () => albumPagine.slice(0, pageSize),
+    [albumPagine, pageSize],
   );
 
   const [albumDraftSyndication, setAlbumDraftSyndication] =
@@ -65,7 +81,7 @@ export default function AlbumConfigPage() {
   useEffect(() => {
     if (!album) return;
     setAlbumDraftSyndication(
-      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION
+      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION,
     );
     setIsSaving(false);
     setJustSaved(false);
@@ -77,22 +93,25 @@ export default function AlbumConfigPage() {
     setDeleteId(null);
   };
 
-  const movePagina = (paginaId: string, direction: "up" | "down") => {
-    const idx = albumPagine.findIndex((p) => p.id === paginaId);
-    if (idx === -1) return;
-    if (direction === "up" && idx === 0) return;
-    if (direction === "down" && idx === albumPagine.length - 1) return;
+  const setPaginaPosition = (paginaId: string, newIndex: number) => {
+    const oldIndex = albumPagine.findIndex((p) => p.id === paginaId);
+    if (oldIndex === -1) return;
+    if (newIndex === oldIndex) return;
 
-    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-    const currentOrdine = albumPagine[idx].ordine;
-    const swapOrdine = albumPagine[swapIdx].ordine;
+    const reordered = [...albumPagine];
+    const [moved] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, moved);
+
+    const updatedOrder = reordered.map((p, i) => ({
+      ...p,
+      ordine: i + 1,
+    }));
 
     setPagine(
       pagine.map((p) => {
-        if (p.id === albumPagine[idx].id) return { ...p, ordine: swapOrdine };
-        if (p.id === albumPagine[swapIdx].id) return { ...p, ordine: currentOrdine };
-        return p;
-      })
+        const found = updatedOrder.find((u) => u.id === p.id);
+        return found ? { ...p, ordine: found.ordine } : p;
+      }),
     );
   };
 
@@ -104,8 +123,8 @@ export default function AlbumConfigPage() {
 
     setAlbums(
       albums.map((a) =>
-        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a
-      )
+        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a,
+      ),
     );
     await new Promise((r) => setTimeout(r, 450));
 
@@ -150,7 +169,42 @@ export default function AlbumConfigPage() {
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Pagine ({albumPagine.length} elementi)</CardTitle>
+            <div className="space-y-2">
+              <CardTitle>Pagine</CardTitle>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Visualizza</span>
+                <select
+                  className="
+                    h-8
+                    bg-transparent
+                    border-0
+                    border-b
+                    border-muted-foreground/40
+                    rounded-none
+                    px-1
+                    text-sm
+                    focus:outline-none
+                    focus:ring-0
+                    cursor-pointer
+                  "
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                >
+                  <option value={10}>10</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span>elementi</span>
+
+                {albumPagine.length > pageSize ? (
+                  <span className="ml-2 text-xs">
+                    (Mostrati {visiblePagine.length} di {albumPagine.length})
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
             <Button onClick={() => navigate(`/pagine/new?albumId=${albumId}`)}>
               <Plus className="h-4 w-4 mr-2" />
               Aggiungi pagina
@@ -160,7 +214,7 @@ export default function AlbumConfigPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px]">Ordine</TableHead>
+                  <TableHead className="w-[140px]">Ordinamento</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Background</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
@@ -173,46 +227,60 @@ export default function AlbumConfigPage() {
                       colSpan={4}
                       className="text-center text-muted-foreground py-8"
                     >
-                      Nessuna pagina trovata. Clicca "Aggiungi pagina" per iniziare.
+                      Nessuna pagina trovata. Clicca "Aggiungi pagina" per
+                      iniziare.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  albumPagine.map((pagina, idx) => (
+                  visiblePagine.map((pagina, idx) => (
                     <TableRow key={pagina.id}>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => movePagina(pagina.id, "up")}
-                            disabled={idx === 0}
+                        <div className="flex items-center gap-2">
+                          <select
+                            className="
+                              h-8
+                              bg-transparent
+                              border-0
+                              border-b
+                              border-muted-foreground/40
+                              rounded-none
+                              px-2
+                              text-sm
+                              focus:outline-none
+                              focus:ring-0
+                              focus:border-primary
+                              cursor-pointer
+                            "
+                            value={idx}
+                            onChange={(e) =>
+                              setPaginaPosition(
+                                pagina.id,
+                                Number(e.target.value),
+                              )
+                            }
                           >
-                            <ArrowUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => movePagina(pagina.id, "down")}
-                            disabled={idx === albumPagine.length - 1}
-                          >
-                            <ArrowDown className="h-3 w-3" />
-                          </Button>
-                          <span className="text-xs text-muted-foreground ml-1">
-                            {pagina.ordine}
-                          </span>
+                            {visiblePagine.map((_, i) => (
+                              <option key={i} value={i}>
+                                {i + 1}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">{pagina.nome}</TableCell>
+
+                      <TableCell className="font-medium">
+                        {pagina.nome}
+                      </TableCell>
+
                       <TableCell>
                         {pagina.backgroundLink ? (
                           <img
                             src={pagina.backgroundLink}
                             alt={pagina.nome}
-                            className="w-16 h-10 object-cover rounded border"
+                            className="w-18 h-10 object-contain rounded border"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = "none";
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
                             }}
                           />
                         ) : (
@@ -254,13 +322,6 @@ export default function AlbumConfigPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-start gap-4">
-              <div className="text-sm text-muted-foreground">Stato attuale:</div>
-              <SyndicationStatusIcons
-                syndication={albumDraftSyndication || DEFAULT_SYNDICATION}
-              />
-            </div>
-
             <SyndicationSection
               syndication={albumDraftSyndication}
               onChange={setAlbumDraftSyndication}
@@ -297,7 +358,9 @@ export default function AlbumConfigPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

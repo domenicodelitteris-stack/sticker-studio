@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ImageIcon } from "lucide-react";
+import { ArrowLeft, ImageIcon, Upload, X } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Figurina, Pagina, Album } from "@/types";
+import { Figurina, Album } from "@/types";
 
 export default function FigurinaConfigPage() {
   const { figurinaId } = useParams<{ figurinaId: string }>();
@@ -24,34 +24,84 @@ export default function FigurinaConfigPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [figurine, setFigurine] = useLocalStorage<Figurina[]>("figurine", []);
-  const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [albums] = useLocalStorage<Album[]>("album", []);
 
   const isNew = figurinaId === "new";
   const figurina = isNew ? null : figurine.find((f) => f.id === figurinaId);
-  const preselectedPaginaId = searchParams.get("paginaId");
+  const preselectedAlbumId = searchParams.get("albumId");
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     nome: figurina?.nome || "",
     tipo: (figurina?.tipo || "Standard") as "Standard" | "Speciale",
-    link: figurina?.link || "",
-    paginaId: figurina?.paginaId || preselectedPaginaId || "",
+    link: (figurina as any)?.link || "",
+    albumId: (figurina as any)?.albumId || preselectedAlbumId || "",
+    fileName: (figurina as any)?.fileName || "",
   });
 
-  const selectedPagina = pagine.find((p) => p.id === formData.paginaId);
-  const selectedAlbum = albums.find((a) => a.id === selectedPagina?.albumId);
-
-  const getNextNumero = (paginaId: string) => {
-    const paginaFigurine = figurine.filter((f) => f.paginaId === paginaId);
-    const numeri = paginaFigurine.map((f) => f.numero);
+  const getNextNumero = (albumId: string) => {
+    const albumFigurine = figurine.filter((f: any) => f.albumId === albumId);
+    const numeri = albumFigurine.map((f: any) => f.numero);
     if (numeri.length === 0) return 1;
     return Math.max(...numeri) + 1;
   };
 
-  const getNextOrdine = (paginaId: string) => {
-    const paginaFigurine = figurine.filter((f) => f.paginaId === paginaId);
-    if (paginaFigurine.length === 0) return 1;
-    return Math.max(...paginaFigurine.map((f) => f.ordine || 0)) + 1;
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "File non valido",
+        description: "Seleziona un file immagine (PNG, JPG, WEBP...)",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_MB = 2;
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_MB) {
+      toast({
+        title: "Immagine troppo grande",
+        description: `Scegli un'immagine più piccola di ${MAX_MB}MB`,
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+
+      setFormData((prev) => ({
+        ...prev,
+        link: result,
+        fileName: file.name, // ✅ salva nome file
+      }));
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Errore",
+        description: "Non sono riuscito a leggere il file",
+        variant: "destructive",
+      });
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, link: "", fileName: "" }));
   };
 
   const handleSave = () => {
@@ -64,28 +114,28 @@ export default function FigurinaConfigPage() {
       return;
     }
 
-    if (!formData.paginaId) {
+    if (!formData.albumId) {
       toast({
         title: "Errore",
-        description: "Seleziona una pagina",
+        description: "Seleziona un album",
         variant: "destructive",
       });
       return;
     }
 
-    const returnUrl = preselectedPaginaId
-      ? `/pagine/${preselectedPaginaId}`
+    const returnUrl = preselectedAlbumId
+      ? `/album/${preselectedAlbumId}`
       : "/figurine";
 
     if (isNew) {
-      const newFigurina: Figurina = {
+      const newFigurina: any = {
         id: crypto.randomUUID(),
         nome: formData.nome.trim(),
-        numero: getNextNumero(formData.paginaId),
+        numero: getNextNumero(formData.albumId),
         tipo: formData.tipo,
-        link: formData.link.trim(),
-        paginaId: formData.paginaId,
-        ordine: getNextOrdine(formData.paginaId),
+        link: formData.link,
+        albumId: formData.albumId,
+        fileName: formData.fileName,
         createdAt: new Date(),
       };
 
@@ -96,17 +146,18 @@ export default function FigurinaConfigPage() {
       });
     } else {
       setFigurine(
-        figurine.map((f) =>
+        figurine.map((f: any) =>
           f.id === figurinaId
             ? {
                 ...f,
                 nome: formData.nome.trim(),
                 tipo: formData.tipo,
-                link: formData.link.trim(),
-                paginaId: formData.paginaId,
+                link: formData.link,
+                albumId: formData.albumId,
+                fileName: formData.fileName,
               }
-            : f
-        )
+            : f,
+        ),
       );
       toast({
         title: "Figurina salvata",
@@ -119,8 +170,8 @@ export default function FigurinaConfigPage() {
   };
 
   const handleCancel = () => {
-    const returnUrl = preselectedPaginaId
-      ? `/pagine/${preselectedPaginaId}`
+    const returnUrl = preselectedAlbumId
+      ? `/album/${preselectedAlbumId}`
       : "/figurine";
     navigate(returnUrl);
   };
@@ -143,6 +194,10 @@ export default function FigurinaConfigPage() {
     );
   }
 
+  const fileLabel =
+    formData.fileName ||
+    (formData.link ? "Immagine salvata" : "Nessun file selezionato");
+
   return (
     <>
       <AppHeader
@@ -157,7 +212,7 @@ export default function FigurinaConfigPage() {
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            {preselectedPaginaId ? "Torna alla Pagina" : "Torna alle Figurine"}
+            {preselectedAlbumId ? "Torna all'Album" : "Torna alle Figurine"}
           </Button>
         </div>
 
@@ -181,38 +236,30 @@ export default function FigurinaConfigPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pagina">Pagina</Label>
+                  <Label htmlFor="album">Album</Label>
                   <Select
-                    value={formData.paginaId}
+                    value={formData.albumId}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, paginaId: value })
+                      setFormData({ ...formData, albumId: value })
                     }
                   >
-                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
-                      <SelectValue placeholder="Seleziona pagina" />
+                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
+                      <SelectValue placeholder="Seleziona album" />
                     </SelectTrigger>
                     <SelectContent>
-                      {pagine.length === 0 ? (
+                      {albums.length === 0 ? (
                         <SelectItem value="none" disabled>
-                          Nessuna pagina disponibile
+                          Nessun album disponibile
                         </SelectItem>
                       ) : (
-                        pagine.map((p) => {
-                          const pAlbum = albums.find((a) => a.id === p.albumId);
-                          return (
-                            <SelectItem key={p.id} value={p.id}>
-                              {pAlbum?.nome} - {p.nome}
-                            </SelectItem>
-                          );
-                        })
+                        albums.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.nome}
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
-                  {selectedPagina && selectedAlbum && (
-                    <p className="text-xs text-muted-foreground">
-                      Album: {selectedAlbum.nome}
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -225,7 +272,7 @@ export default function FigurinaConfigPage() {
                       setFormData({ ...formData, tipo: value })
                     }
                   >
-                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
+                    <SelectTrigger className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200">
                       <SelectValue placeholder="Seleziona tipo" />
                     </SelectTrigger>
                     <SelectContent>
@@ -235,24 +282,47 @@ export default function FigurinaConfigPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="link">Link Immagine</Label>
-                  <Input
-                    id="link"
-                    type="text"
-                    value={formData.link}
-                    onChange={(e) =>
-                      setFormData({ ...formData, link: e.target.value })
-                    }
-                    className="rounded-none border-0 border-b-2 border-muted-foreground/30 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:ring-offset-0 focus:outline-none focus:border-b-4 focus:border-b-pink-500 transition-all duration-200"
-                    placeholder="https://esempio.com/immagine.jpg"
+                  <Label>File</Label>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
                   />
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={openFilePicker}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Carica immagine
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">
+                      {fileLabel}
+                    </span>
+
+                    {formData.link && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Rimuovi
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {formData.link && (
-                <div className="space-y-2">
-                  <Label>Preview Immagine</Label>
-                  <div className="border rounded-lg overflow-hidden w-32">
+              <div className="space-y-2">
+                <Label>Preview Immagine</Label>
+                <div className="border rounded-lg overflow-hidden w-32">
+                  {formData.link ? (
                     <img
                       src={formData.link}
                       alt="Preview figurina"
@@ -263,12 +333,17 @@ export default function FigurinaConfigPage() {
                         target.nextElementSibling?.classList.remove("hidden");
                       }}
                     />
-                    <div className="hidden w-full aspect-[3/4] bg-muted flex items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                    </div>
+                  ) : null}
+
+                  <div
+                    className={`w-full aspect-[3/4] bg-muted flex items-center justify-center ${
+                      formData.link ? "hidden" : ""
+                    }`}
+                  >
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
                   </div>
                 </div>
-              )}
+              </div>
 
               <div className="flex justify-end gap-4 pt-4">
                 <Button variant="outline" onClick={handleCancel}>
