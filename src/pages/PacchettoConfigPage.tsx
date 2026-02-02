@@ -495,6 +495,96 @@ export default function PacchettoConfigPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog picker per figurine */}
+      <Dialog open={pickOpen} onOpenChange={setPickOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Seleziona figurine</DialogTitle>
+            <DialogDescription>
+              Clicca su una figurina per aggiungerla o rimuoverla dal pacchetto
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-2 py-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cerca figurina..."
+              value={pickQuery}
+              onChange={(e) => setPickQuery(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-16">Preview</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {figurineAlbum.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessuna figurina disponibile in questo album
+                    </TableCell>
+                  </TableRow>
+                ) : figurineDisponibiliPicker.length === 0 && pickQuery ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessun risultato per "{pickQuery}"
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  figurineAlbum.map((fig) => {
+                    const isSelected = formData.figurineSelezionate.some(
+                      (f) => f.figurinaId === fig.id
+                    );
+                    const matchesQuery = !pickQuery || fig.nome.toLowerCase().includes(pickQuery.toLowerCase());
+                    
+                    if (!matchesQuery) return null;
+                    
+                    return (
+                      <TableRow
+                        key={fig.id}
+                        className="cursor-pointer hover:bg-accent"
+                        onClick={() => handleToggleFigurina(fig.id)}
+                      >
+                        <TableCell>
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {fig.link ? (
+                            <img
+                              src={fig.link}
+                              alt={fig.nome}
+                              className="w-10 h-10 object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">—</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className={isSelected ? "font-medium" : ""}>
+                          {fig.nome}
+                        </TableCell>
+                        <TableCell>{fig.tipo}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
