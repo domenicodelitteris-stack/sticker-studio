@@ -72,11 +72,20 @@ export default function PacchettoConfigPage() {
     return pagine.filter((p) => p.albumId === formData.albumId);
   }, [formData.albumId, pagine]);
 
-  // Get figurines for the selected album (through pages)
+  // Helper to get album ID for a figurina (direct or through page)
+  const getFigurinaAlbumId = (f: Figurina) => {
+    const directAlbumId = (f as any).albumId as string | undefined;
+    if (directAlbumId) return directAlbumId;
+    if (!f.paginaId) return "";
+    const p = pagine.find((pg) => pg.id === f.paginaId);
+    return p?.albumId || "";
+  };
+
+  // Get figurines for the selected album (direct albumId or through pages)
   const figurineAlbum = useMemo(() => {
-    const paginaIds = pagineAlbum.map((p) => p.id);
-    return figurine.filter((f) => paginaIds.includes(f.paginaId));
-  }, [pagineAlbum, figurine]);
+    if (!formData.albumId) return [];
+    return figurine.filter((f) => getFigurinaAlbumId(f) === formData.albumId);
+  }, [formData.albumId, figurine, pagine]);
 
   // Get figurines filtered by search query for picker
   const figurineDisponibiliPicker = useMemo(() => {
