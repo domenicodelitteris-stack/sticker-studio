@@ -388,20 +388,10 @@ export default function PacchettoConfigPage() {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base">Figurine nel pacchetto</CardTitle>
-                          {figurineDisponibili.length > 0 && (
-                            <Select onValueChange={handleAddFigurina}>
-                              <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Aggiungi figurina" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {figurineDisponibili.map((fig) => (
-                                  <SelectItem key={fig.id} value={fig.id}>
-                                    {fig.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                          <Button onClick={() => setPickOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Inserisci figurina
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent>
