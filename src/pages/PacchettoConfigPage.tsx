@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Search, Check } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Pacchetto, Album, Pagina, Figurina, DEFAULT_SYNDICATION, SyndicationPlatform, PacchettoFigurina } from "@/types";
@@ -36,9 +43,12 @@ export default function PacchettoConfigPage() {
     "pacchetti",
     [],
   );
-  const [albums] = useLocalStorage<Album[]>("albums", []);
+  const [albums] = useLocalStorage<Album[]>("album", []);
   const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [figurine] = useLocalStorage<Figurina[]>("figurine", []);
+  
+  const [pickOpen, setPickOpen] = useState(false);
+  const [pickQuery, setPickQuery] = useState("");
 
   const isNew = pacchettoId === "new";
   const tipoFromUrl = searchParams.get("tipo") as "statico" | "dinamico" | null;
@@ -68,11 +78,52 @@ export default function PacchettoConfigPage() {
     return figurine.filter((f) => paginaIds.includes(f.paginaId));
   }, [pagineAlbum, figurine]);
 
-  // Get figurines not yet added to the package
-  const figurineDisponibili = useMemo(() => {
+  // Get figurines filtered by search query for picker
+  const figurineDisponibiliPicker = useMemo(() => {
+    const q = pickQuery.trim().toLowerCase();
     const selectedIds = formData.figurineSelezionate.map((f) => f.figurinaId);
-    return figurineAlbum.filter((f) => !selectedIds.includes(f.id));
-  }, [figurineAlbum, formData.figurineSelezionate]);
+    const available = figurineAlbum.filter((f) => !selectedIds.includes(f.id));
+    if (!q) return available;
+    return available.filter((f) => f.nome.toLowerCase().includes(q));
+  }, [figurineAlbum, formData.figurineSelezionate, pickQuery]);
+
+  const handleToggleFigurina = (figurinaId: string) => {
+    const isSelected = formData.figurineSelezionate.some(
+      (f) => f.figurinaId === figurinaId
+    );
+
+    if (isSelected) {
+      const updated = formData.figurineSelezionate.filter(
+        (f) => f.figurinaId !== figurinaId
+      );
+      setFormData({
+        ...formData,
+        figurineSelezionate: updated,
+        numFigurine: updated.length,
+      });
+      toast({
+        title: "Figurina rimossa",
+        description: "La figurina è stata rimossa dal pacchetto",
+      });
+    } else {
+      const maxOrdine = formData.figurineSelezionate.reduce(
+        (max, f) => Math.max(max, f.ordine),
+        0
+      );
+      setFormData({
+        ...formData,
+        figurineSelezionate: [
+          ...formData.figurineSelezionate,
+          { figurinaId, ordine: maxOrdine + 1 },
+        ],
+        numFigurine: formData.figurineSelezionate.length + 1,
+      });
+      toast({
+        title: "Figurina aggiunta",
+        description: "La figurina è stata aggiunta al pacchetto",
+      });
+    }
+  };
 
   // Get full figurina data for selected figurines
   const figurineNelPacchetto = useMemo(() => {
@@ -337,20 +388,10 @@ export default function PacchettoConfigPage() {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base">Figurine nel pacchetto</CardTitle>
-                          {figurineDisponibili.length > 0 && (
-                            <Select onValueChange={handleAddFigurina}>
-                              <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Aggiungi figurina" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {figurineDisponibili.map((fig) => (
-                                  <SelectItem key={fig.id} value={fig.id}>
-                                    {fig.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                          <Button onClick={() => setPickOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Inserisci figurina
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent>
@@ -454,6 +495,96 @@ export default function PacchettoConfigPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog picker per figurine */}
+      <Dialog open={pickOpen} onOpenChange={setPickOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Seleziona figurine</DialogTitle>
+            <DialogDescription>
+              Clicca su una figurina per aggiungerla o rimuoverla dal pacchetto
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-2 py-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cerca figurina..."
+              value={pickQuery}
+              onChange={(e) => setPickQuery(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+
+          <div className="flex-1 overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-16">Preview</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {figurineAlbum.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessuna figurina disponibile in questo album
+                    </TableCell>
+                  </TableRow>
+                ) : figurineDisponibiliPicker.length === 0 && pickQuery ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      Nessun risultato per "{pickQuery}"
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  figurineAlbum.map((fig) => {
+                    const isSelected = formData.figurineSelezionate.some(
+                      (f) => f.figurinaId === fig.id
+                    );
+                    const matchesQuery = !pickQuery || fig.nome.toLowerCase().includes(pickQuery.toLowerCase());
+                    
+                    if (!matchesQuery) return null;
+                    
+                    return (
+                      <TableRow
+                        key={fig.id}
+                        className="cursor-pointer hover:bg-accent"
+                        onClick={() => handleToggleFigurina(fig.id)}
+                      >
+                        <TableCell>
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {fig.link ? (
+                            <img
+                              src={fig.link}
+                              alt={fig.nome}
+                              className="w-10 h-10 object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">—</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className={isSelected ? "font-medium" : ""}>
+                          {fig.nome}
+                        </TableCell>
+                        <TableCell>{fig.tipo}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
