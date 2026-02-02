@@ -78,11 +78,52 @@ export default function PacchettoConfigPage() {
     return figurine.filter((f) => paginaIds.includes(f.paginaId));
   }, [pagineAlbum, figurine]);
 
-  // Get figurines not yet added to the package
-  const figurineDisponibili = useMemo(() => {
+  // Get figurines filtered by search query for picker
+  const figurineDisponibiliPicker = useMemo(() => {
+    const q = pickQuery.trim().toLowerCase();
     const selectedIds = formData.figurineSelezionate.map((f) => f.figurinaId);
-    return figurineAlbum.filter((f) => !selectedIds.includes(f.id));
-  }, [figurineAlbum, formData.figurineSelezionate]);
+    const available = figurineAlbum.filter((f) => !selectedIds.includes(f.id));
+    if (!q) return available;
+    return available.filter((f) => f.nome.toLowerCase().includes(q));
+  }, [figurineAlbum, formData.figurineSelezionate, pickQuery]);
+
+  const handleToggleFigurina = (figurinaId: string) => {
+    const isSelected = formData.figurineSelezionate.some(
+      (f) => f.figurinaId === figurinaId
+    );
+
+    if (isSelected) {
+      const updated = formData.figurineSelezionate.filter(
+        (f) => f.figurinaId !== figurinaId
+      );
+      setFormData({
+        ...formData,
+        figurineSelezionate: updated,
+        numFigurine: updated.length,
+      });
+      toast({
+        title: "Figurina rimossa",
+        description: "La figurina è stata rimossa dal pacchetto",
+      });
+    } else {
+      const maxOrdine = formData.figurineSelezionate.reduce(
+        (max, f) => Math.max(max, f.ordine),
+        0
+      );
+      setFormData({
+        ...formData,
+        figurineSelezionate: [
+          ...formData.figurineSelezionate,
+          { figurinaId, ordine: maxOrdine + 1 },
+        ],
+        numFigurine: formData.figurineSelezionate.length + 1,
+      });
+      toast({
+        title: "Figurina aggiunta",
+        description: "La figurina è stata aggiunta al pacchetto",
+      });
+    }
+  };
 
   // Get full figurina data for selected figurines
   const figurineNelPacchetto = useMemo(() => {
