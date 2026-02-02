@@ -36,6 +36,9 @@ export default function PacchettoConfigPage() {
     "pacchetti",
     [],
   );
+  const [albums] = useLocalStorage<Album[]>("albums", []);
+  const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
+  const [figurine] = useLocalStorage<Figurina[]>("figurine", []);
 
   const isNew = pacchettoId === "new";
   const tipoFromUrl = searchParams.get("tipo") as "statico" | "dinamico" | null;
@@ -49,7 +52,90 @@ export default function PacchettoConfigPage() {
     syndication:
       pacchetto?.syndication ||
       ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
+    albumId: pacchetto?.albumId || "",
+    figurineSelezionate: pacchetto?.figurine || [] as PacchettoFigurina[],
   });
+
+  // Get pages for the selected album
+  const pagineAlbum = useMemo(() => {
+    if (!formData.albumId) return [];
+    return pagine.filter((p) => p.albumId === formData.albumId);
+  }, [formData.albumId, pagine]);
+
+  // Get figurines for the selected album (through pages)
+  const figurineAlbum = useMemo(() => {
+    const paginaIds = pagineAlbum.map((p) => p.id);
+    return figurine.filter((f) => paginaIds.includes(f.paginaId));
+  }, [pagineAlbum, figurine]);
+
+  // Get figurines not yet added to the package
+  const figurineDisponibili = useMemo(() => {
+    const selectedIds = formData.figurineSelezionate.map((f) => f.figurinaId);
+    return figurineAlbum.filter((f) => !selectedIds.includes(f.id));
+  }, [figurineAlbum, formData.figurineSelezionate]);
+
+  // Get full figurina data for selected figurines
+  const figurineNelPacchetto = useMemo(() => {
+    return formData.figurineSelezionate
+      .sort((a, b) => a.ordine - b.ordine)
+      .map((pf) => ({
+        ...pf,
+        figurina: figurine.find((f) => f.id === pf.figurinaId),
+      }));
+  }, [formData.figurineSelezionate, figurine]);
+
+  const handleAddFigurina = (figurinaId: string) => {
+    const maxOrdine = formData.figurineSelezionate.reduce(
+      (max, f) => Math.max(max, f.ordine),
+      0
+    );
+    setFormData({
+      ...formData,
+      figurineSelezionate: [
+        ...formData.figurineSelezionate,
+        { figurinaId, ordine: maxOrdine + 1 },
+      ],
+      numFigurine: formData.figurineSelezionate.length + 1,
+    });
+  };
+
+  const handleRemoveFigurina = (figurinaId: string) => {
+    const updated = formData.figurineSelezionate.filter(
+      (f) => f.figurinaId !== figurinaId
+    );
+    setFormData({
+      ...formData,
+      figurineSelezionate: updated,
+      numFigurine: updated.length,
+    });
+  };
+
+  const handleMoveFigurina = (figurinaId: string, direction: "up" | "down") => {
+    const sorted = [...formData.figurineSelezionate].sort(
+      (a, b) => a.ordine - b.ordine
+    );
+    const index = sorted.findIndex((f) => f.figurinaId === figurinaId);
+    if (
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === sorted.length - 1)
+    ) {
+      return;
+    }
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    const tempOrdine = sorted[index].ordine;
+    sorted[index].ordine = sorted[swapIndex].ordine;
+    sorted[swapIndex].ordine = tempOrdine;
+    setFormData({ ...formData, figurineSelezionate: sorted });
+  };
+
+  const handleAlbumChange = (albumId: string) => {
+    setFormData({
+      ...formData,
+      albumId,
+      figurineSelezionate: [],
+      numFigurine: 0,
+    });
+  };
 
   const handleSave = () => {
     if (!formData.nome.trim()) {
