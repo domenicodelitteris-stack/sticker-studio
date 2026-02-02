@@ -296,6 +296,142 @@ export default function PacchettoConfigPage() {
                 </div>
               </div>
 
+              {formData.tipo === "statico" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="album">Album</Label>
+                    <Select
+                      value={formData.albumId}
+                      onValueChange={handleAlbumChange}
+                    >
+                      <SelectTrigger
+                        className="
+                          rounded-none
+                          border-0
+                          border-b-2
+                          bg-transparent
+                          px-0
+                          shadow-none
+                          focus:ring-0
+                          focus:ring-offset-0
+                          border-muted-foreground/30
+                          focus:border-b-4
+                          focus:border-pink-500
+                          transition-all duration-200
+                        "
+                      >
+                        <SelectValue placeholder="Seleziona un album" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {albums.map((album) => (
+                          <SelectItem key={album.id} value={album.id}>
+                            {album.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.albumId && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">Figurine nel pacchetto</CardTitle>
+                          {figurineDisponibili.length > 0 && (
+                            <Select onValueChange={handleAddFigurina}>
+                              <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder="Aggiungi figurina" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {figurineDisponibili.map((fig) => (
+                                  <SelectItem key={fig.id} value={fig.id}>
+                                    {fig.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {figurineNelPacchetto.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Nessuna figurina aggiunta. Seleziona le figurine dall'album.
+                          </p>
+                        ) : (
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-16">Ordine</TableHead>
+                                <TableHead className="w-20">Preview</TableHead>
+                                <TableHead>Nome</TableHead>
+                                <TableHead className="text-right">Azioni</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {figurineNelPacchetto.map((pf, index) => (
+                                <TableRow key={pf.figurinaId}>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={() =>
+                                          handleMoveFigurina(pf.figurinaId, "up")
+                                        }
+                                        disabled={index === 0}
+                                      >
+                                        <ArrowUp className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={() =>
+                                          handleMoveFigurina(pf.figurinaId, "down")
+                                        }
+                                        disabled={
+                                          index === figurineNelPacchetto.length - 1
+                                        }
+                                      >
+                                        <ArrowDown className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {pf.figurina?.link && (
+                                      <img
+                                        src={pf.figurina.link}
+                                        alt={pf.figurina?.nome}
+                                        className="w-12 h-12 object-cover rounded"
+                                      />
+                                    )}
+                                  </TableCell>
+                                  <TableCell>{pf.figurina?.nome}</TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() =>
+                                        handleRemoveFigurina(pf.figurinaId)
+                                      }
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
+
               <SyndicationSection
                 syndication={formData.syndication}
                 onChange={(syndication) =>
