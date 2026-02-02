@@ -151,10 +151,12 @@ export default function PacchettoConfigPage() {
       const newPacchetto: Pacchetto = {
         id: crypto.randomUUID(),
         nome: formData.nome,
-        numFigurine: formData.numFigurine,
+        numFigurine: formData.figurineSelezionate.length || formData.numFigurine,
         tipo: formData.tipo,
         syndication: formData.syndication,
         createdAt: new Date(),
+        albumId: formData.tipo === "statico" ? formData.albumId : undefined,
+        figurine: formData.tipo === "statico" ? formData.figurineSelezionate : undefined,
       };
       setPacchetti([...pacchetti, newPacchetto]);
       toast({
@@ -168,8 +170,10 @@ export default function PacchettoConfigPage() {
             ? {
                 ...p,
                 nome: formData.nome,
-                numFigurine: formData.numFigurine,
+                numFigurine: formData.figurineSelezionate.length || formData.numFigurine,
                 syndication: formData.syndication,
+                albumId: formData.tipo === "statico" ? formData.albumId : undefined,
+                figurine: formData.tipo === "statico" ? formData.figurineSelezionate : undefined,
               }
             : p,
         ),
