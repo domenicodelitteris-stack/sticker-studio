@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Search, Check } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Pacchetto, Album, Pagina, Figurina, DEFAULT_SYNDICATION, SyndicationPlatform, PacchettoFigurina } from "@/types";
@@ -36,9 +43,12 @@ export default function PacchettoConfigPage() {
     "pacchetti",
     [],
   );
-  const [albums] = useLocalStorage<Album[]>("albums", []);
+  const [albums] = useLocalStorage<Album[]>("album", []);
   const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [figurine] = useLocalStorage<Figurina[]>("figurine", []);
+  
+  const [pickOpen, setPickOpen] = useState(false);
+  const [pickQuery, setPickQuery] = useState("");
 
   const isNew = pacchettoId === "new";
   const tipoFromUrl = searchParams.get("tipo") as "statico" | "dinamico" | null;
