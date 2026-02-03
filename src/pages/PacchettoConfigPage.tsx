@@ -1,6 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, Search, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Search,
+  Check,
+} from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -31,7 +39,15 @@ import {
 } from "@/components/ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
-import { Pacchetto, Album, Pagina, Figurina, DEFAULT_SYNDICATION, SyndicationPlatform, PacchettoFigurina } from "@/types";
+import {
+  Pacchetto,
+  Album,
+  Pagina,
+  Figurina,
+  DEFAULT_SYNDICATION,
+  SyndicationPlatform,
+  PacchettoFigurina,
+} from "@/types";
 import { SyndicationSection } from "@/components/SyndicationSection";
 
 export default function PacchettoConfigPage() {
@@ -46,7 +62,7 @@ export default function PacchettoConfigPage() {
   const [albums] = useLocalStorage<Album[]>("album", []);
   const [pagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [figurine] = useLocalStorage<Figurina[]>("figurine", []);
-  
+
   const [pickOpen, setPickOpen] = useState(false);
   const [pickQuery, setPickQuery] = useState("");
 
@@ -63,9 +79,11 @@ export default function PacchettoConfigPage() {
       pacchetto?.syndication ||
       ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
     albumId: pacchetto?.albumId || "",
-    figurineSelezionate: pacchetto?.figurine || [] as PacchettoFigurina[],
+    figurineSelezionate: pacchetto?.figurine || ([] as PacchettoFigurina[]),
   });
-
+  const [numFigurineText, setNumFigurineText] = useState(
+    String(pacchetto?.numFigurine ?? 1),
+  );
   // Get pages for the selected album
   const pagineAlbum = useMemo(() => {
     if (!formData.albumId) return [];
@@ -87,6 +105,15 @@ export default function PacchettoConfigPage() {
     return figurine.filter((f) => getFigurinaAlbumId(f) === formData.albumId);
   }, [formData.albumId, figurine, pagine]);
 
+  useEffect(() => {
+    setNumFigurineText(String(formData.numFigurine ?? ""));
+  }, [formData.numFigurine]);
+
+  const figurineCandidate = useMemo(() => {
+    // Scegli l'ordine automatico: qui per nome
+    return [...figurineAlbum].sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [figurineAlbum]);
+
   // Get figurines filtered by search query for picker
   const figurineDisponibiliPicker = useMemo(() => {
     const q = pickQuery.trim().toLowerCase();
@@ -98,12 +125,12 @@ export default function PacchettoConfigPage() {
 
   const handleToggleFigurina = (figurinaId: string) => {
     const isSelected = formData.figurineSelezionate.some(
-      (f) => f.figurinaId === figurinaId
+      (f) => f.figurinaId === figurinaId,
     );
 
     if (isSelected) {
       const updated = formData.figurineSelezionate.filter(
-        (f) => f.figurinaId !== figurinaId
+        (f) => f.figurinaId !== figurinaId,
       );
       setFormData({
         ...formData,
@@ -117,7 +144,7 @@ export default function PacchettoConfigPage() {
     } else {
       const maxOrdine = formData.figurineSelezionate.reduce(
         (max, f) => Math.max(max, f.ordine),
-        0
+        0,
       );
       setFormData({
         ...formData,
@@ -133,10 +160,100 @@ export default function PacchettoConfigPage() {
       });
     }
   };
+  useEffect(() => {
+    if (formData.tipo !== "statico") return;
+    if (!formData.albumId) return;
 
-  // Get full figurina data for selected figurines
+    const max = figurineAlbum.length;
+
+    if (max === 0) {
+      if (formData.numFigurine !== 0 || formData.figurineSelezionate.length) {
+        setFormData((prev) => ({
+          ...prev,
+          numFigurine: 0,
+          figurineSelezionate: [],
+        }));
+      }
+      return;
+    }
+
+    const target = Math.min(Math.max(1, formData.numFigurine), max);
+
+    if (target !== formData.numFigurine) {
+      setFormData((prev) => ({ ...prev, numFigurine: target }));
+      return;
+    }
+
+    const selectedSorted = [...formData.figurineSelezionate].sort(
+      (a, b) => a.ordine - b.ordine,
+    );
+    if (selectedSorted.length > target) {
+      const trimmed = selectedSorted.slice(0, target).map((x, i) => ({
+        ...x,
+        ordine: i + 1,
+      }));
+
+      setFormData((prev) => ({
+        ...prev,
+        figurineSelezionate: trimmed,
+      }));
+      return;
+    }
+    if (selectedSorted.length < target) {
+      const selectedIds = new Set(selectedSorted.map((x) => x.figurinaId));
+
+      const missing = figurineCandidate
+        .filter((f) => !selectedIds.has(f.id))
+        .slice(0, target - selectedSorted.length)
+        .map((f, idx) => ({
+          figurinaId: f.id,
+          ordine: selectedSorted.length + idx + 1,
+        }));
+
+      const next = [...selectedSorted, ...missing].map((x, i) => ({
+        ...x,
+        ordine: i + 1,
+      }));
+
+      setFormData((prev) => ({
+        ...prev,
+        figurineSelezionate: next,
+      }));
+    }
+  }, [
+    formData.tipo,
+    formData.albumId,
+    formData.numFigurine,
+    formData.figurineSelezionate,
+    figurineAlbum.length,
+    figurineCandidate,
+  ]);
+
+  const setFigurinaPosition = (figurinaId: string, newIndex: number) => {
+    const ordered = [...formData.figurineSelezionate].sort(
+      (a, b) => a.ordine - b.ordine,
+    );
+
+    const oldIndex = ordered.findIndex((f) => f.figurinaId === figurinaId);
+    if (oldIndex === -1) return;
+    if (oldIndex === newIndex) return;
+
+    const [moved] = ordered.splice(oldIndex, 1);
+    ordered.splice(newIndex, 0, moved);
+
+    const reindexed = ordered.map((item, i) => ({
+      ...item,
+      ordine: i + 1,
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      figurineSelezionate: reindexed,
+    }));
+  };
+
   const figurineNelPacchetto = useMemo(() => {
-    return formData.figurineSelezionate
+    return [...formData.figurineSelezionate]
       .sort((a, b) => a.ordine - b.ordine)
       .map((pf) => ({
         ...pf,
@@ -147,7 +264,7 @@ export default function PacchettoConfigPage() {
   const handleAddFigurina = (figurinaId: string) => {
     const maxOrdine = formData.figurineSelezionate.reduce(
       (max, f) => Math.max(max, f.ordine),
-      0
+      0,
     );
     setFormData({
       ...formData,
@@ -160,19 +277,25 @@ export default function PacchettoConfigPage() {
   };
 
   const handleRemoveFigurina = (figurinaId: string) => {
-    const updated = formData.figurineSelezionate.filter(
-      (f) => f.figurinaId !== figurinaId
-    );
-    setFormData({
-      ...formData,
-      figurineSelezionate: updated,
-      numFigurine: updated.length,
+    setFormData((prev) => {
+      const updated = prev.figurineSelezionate
+        .filter((f) => f.figurinaId !== figurinaId)
+        .sort((a, b) => a.ordine - b.ordine)
+        .map((x, i) => ({ ...x, ordine: i + 1 }));
+
+      const nextNum = Math.max(1, updated.length);
+
+      return {
+        ...prev,
+        figurineSelezionate: updated,
+        numFigurine: nextNum,
+      };
     });
   };
 
   const handleMoveFigurina = (figurinaId: string, direction: "up" | "down") => {
     const sorted = [...formData.figurineSelezionate].sort(
-      (a, b) => a.ordine - b.ordine
+      (a, b) => a.ordine - b.ordine,
     );
     const index = sorted.findIndex((f) => f.figurinaId === figurinaId);
     if (
@@ -211,12 +334,16 @@ export default function PacchettoConfigPage() {
       const newPacchetto: Pacchetto = {
         id: crypto.randomUUID(),
         nome: formData.nome,
-        numFigurine: formData.figurineSelezionate.length || formData.numFigurine,
+        numFigurine:
+          formData.figurineSelezionate.length || formData.numFigurine,
         tipo: formData.tipo,
         syndication: formData.syndication,
         createdAt: new Date(),
         albumId: formData.tipo === "statico" ? formData.albumId : undefined,
-        figurine: formData.tipo === "statico" ? formData.figurineSelezionate : undefined,
+        figurine:
+          formData.tipo === "statico"
+            ? formData.figurineSelezionate
+            : undefined,
       };
       setPacchetti([...pacchetti, newPacchetto]);
       toast({
@@ -230,10 +357,15 @@ export default function PacchettoConfigPage() {
             ? {
                 ...p,
                 nome: formData.nome,
-                numFigurine: formData.figurineSelezionate.length || formData.numFigurine,
+                numFigurine:
+                  formData.figurineSelezionate.length || formData.numFigurine,
                 syndication: formData.syndication,
-                albumId: formData.tipo === "statico" ? formData.albumId : undefined,
-                figurine: formData.tipo === "statico" ? formData.figurineSelezionate : undefined,
+                albumId:
+                  formData.tipo === "statico" ? formData.albumId : undefined,
+                figurine:
+                  formData.tipo === "statico"
+                    ? formData.figurineSelezionate
+                    : undefined,
               }
             : p,
         ),
@@ -324,13 +456,28 @@ export default function PacchettoConfigPage() {
                     id="numFigurine"
                     type="number"
                     min={1}
-                    value={formData.numFigurine}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        numFigurine: parseInt(e.target.value) || 1,
-                      })
-                    }
+                    max={Math.max(1, figurineAlbum.length)}
+                    value={numFigurineText}
+                    onChange={(e) => {
+                      setNumFigurineText(e.target.value);
+                    }}
+                    onBlur={() => {
+                      const max = Math.max(1, figurineAlbum.length);
+
+                      const raw = numFigurineText.trim();
+                      const parsed = raw === "" ? 1 : parseInt(raw, 10);
+
+                      const clamped = Math.min(
+                        Math.max(1, isNaN(parsed) ? 1 : parsed),
+                        max,
+                      );
+
+                      setNumFigurineText(String(clamped));
+                      setFormData((prev) => ({
+                        ...prev,
+                        numFigurine: clamped,
+                      }));
+                    }}
                     className="
                             rounded-none
                             border-0
@@ -346,6 +493,17 @@ export default function PacchettoConfigPage() {
                             transition-all duration-200
                           "
                   />
+                  {formData.albumId ? (
+                    <p className="text-xs text-muted-foreground">
+                      Puoi inserire da 1 a {Math.max(1, figurineAlbum.length)}{" "}
+                      figurine (massimo disponibile nell’album).
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Seleziona un album per vedere il numero massimo di
+                      figurine.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -356,130 +514,137 @@ export default function PacchettoConfigPage() {
                 </div>
               </div>
 
-              {formData.tipo === "statico" && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="album">Album</Label>
-                    <Select
-                      value={formData.albumId}
-                      onValueChange={handleAlbumChange}
-                    >
-                      <SelectTrigger
-                        className="
-                          rounded-none
-                          border-0
-                          border-b-2
-                          bg-transparent
-                          px-0
-                          shadow-none
-                          focus:ring-0
-                          focus:ring-offset-0
-                          border-muted-foreground/30
-                          focus:border-b-4
-                          focus:border-pink-500
-                          transition-all duration-200
-                        "
-                      >
-                        <SelectValue placeholder="Seleziona un album" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {albums.map((album) => (
-                          <SelectItem key={album.id} value={album.id}>
-                            {album.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="album">Album</Label>
+                <Select
+                  value={formData.albumId}
+                  onValueChange={handleAlbumChange}
+                >
+                  <SelectTrigger
+                    className="
+                              w-1/2
+                              text-sm
+                              rounded-none
+                              border-0
+                              border-b-2
+                              bg-transparent
+                              px-0
+                              py-0
+                              shadow-none
+                              focus:ring-0
+                              focus:ring-offset-0
+                              border-muted-foreground/30
+                              focus:border-b-4
+                              focus:border-pink-500
+                              transition-all duration-200
+                            "
+                  >
+                    <SelectValue placeholder="Seleziona un album" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {albums.map((album) => (
+                      <SelectItem key={album.id} value={album.id}>
+                        {album.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  {formData.albumId && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">Figurine nel pacchetto</CardTitle>
-                          <Button onClick={() => setPickOpen(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Inserisci figurina
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        {figurineNelPacchetto.length === 0 ? (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            Nessuna figurina aggiunta. Seleziona le figurine dall'album.
-                          </p>
-                        ) : (
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-16">Ordine</TableHead>
-                                <TableHead className="w-20">Preview</TableHead>
-                                <TableHead>Nome</TableHead>
-                                <TableHead className="text-right">Azioni</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {figurineNelPacchetto.map((pf, index) => (
-                                <TableRow key={pf.figurinaId}>
-                                  <TableCell>
-                                    <div className="flex items-center gap-1">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6"
-                                        onClick={() =>
-                                          handleMoveFigurina(pf.figurinaId, "up")
-                                        }
-                                        disabled={index === 0}
-                                      >
-                                        <ArrowUp className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6"
-                                        onClick={() =>
-                                          handleMoveFigurina(pf.figurinaId, "down")
-                                        }
-                                        disabled={
-                                          index === figurineNelPacchetto.length - 1
-                                        }
-                                      >
-                                        <ArrowDown className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    {pf.figurina?.link && (
-                                      <img
-                                        src={pf.figurina.link}
-                                        alt={pf.figurina?.nome}
-                                        className="w-12 h-12 object-cover rounded"
-                                      />
-                                    )}
-                                  </TableCell>
-                                  <TableCell>{pf.figurina?.nome}</TableCell>
-                                  <TableCell className="text-right">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() =>
-                                        handleRemoveFigurina(pf.figurinaId)
-                                      }
-                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
+              {formData.albumId && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">
+                        Figurine nel pacchetto
+                      </CardTitle>
+                      <Button onClick={() => setPickOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Inserisci figurina
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {figurineNelPacchetto.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nessuna figurina aggiunta. Seleziona le figurine
+                        dall&apos;album.
+                      </p>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-16">Ordine</TableHead>
+                            <TableHead className="w-20">Preview</TableHead>
+                            <TableHead>Nome</TableHead>
+                            <TableHead className="text-right">Azioni</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {figurineNelPacchetto.map((pf, index) => (
+                            <TableRow key={pf.figurinaId}>
+                              <TableCell>
+                                <select
+                                  className="
+                      h-8
+                      bg-transparent
+                      border-0
+                      border-b
+                      border-muted-foreground/40
+                      rounded-none
+                      px-2
+                      text-sm
+                      focus:outline-none
+                      focus:ring-0
+                      cursor-pointer
+                    "
+                                  value={index}
+                                  onChange={(e) =>
+                                    setFigurinaPosition(
+                                      pf.figurinaId,
+                                      Number(e.target.value),
+                                    )
+                                  }
+                                >
+                                  {figurineNelPacchetto.map((_, i) => (
+                                    <option key={i} value={i}>
+                                      {i + 1}
+                                    </option>
+                                  ))}
+                                </select>
+                              </TableCell>
+
+                              <TableCell>
+                                {pf.figurina?.link && (
+                                  <img
+                                    src={pf.figurina.link}
+                                    alt={pf.figurina?.nome}
+                                    className="w-12 h-12 object-cover rounded"
+                                  />
+                                )}
+                              </TableCell>
+
+                              <TableCell>{pf.figurina?.nome}</TableCell>
+
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleRemoveFigurina(pf.figurinaId)
+                                  }
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
               )}
 
               <SyndicationSection
@@ -538,25 +703,33 @@ export default function PacchettoConfigPage() {
               <TableBody>
                 {figurineAlbum.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessuna figurina disponibile in questo album
                     </TableCell>
                   </TableRow>
                 ) : figurineDisponibiliPicker.length === 0 && pickQuery ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground py-8"
+                    >
                       Nessun risultato per "{pickQuery}"
                     </TableCell>
                   </TableRow>
                 ) : (
                   figurineAlbum.map((fig) => {
                     const isSelected = formData.figurineSelezionate.some(
-                      (f) => f.figurinaId === fig.id
+                      (f) => f.figurinaId === fig.id,
                     );
-                    const matchesQuery = !pickQuery || fig.nome.toLowerCase().includes(pickQuery.toLowerCase());
-                    
+                    const matchesQuery =
+                      !pickQuery ||
+                      fig.nome.toLowerCase().includes(pickQuery.toLowerCase());
+
                     if (!matchesQuery) return null;
-                    
+
                     return (
                       <TableRow
                         key={fig.id}
@@ -577,7 +750,9 @@ export default function PacchettoConfigPage() {
                             />
                           ) : (
                             <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground">
+                                —
+                              </span>
                             </div>
                           )}
                         </TableCell>

@@ -128,6 +128,7 @@ export default function AlbumPage() {
                     focus-visible:ring-offset-0
                     border-muted-foreground/30
                     focus:border-b-4
+                    focus:border-pink-500
                     transition-all duration-200
                   "
                 />
