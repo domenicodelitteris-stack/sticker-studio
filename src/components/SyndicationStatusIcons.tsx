@@ -1,4 +1,3 @@
-import { Globe, Smartphone, Tv, Monitor } from "lucide-react";
 import { SyndicationPlatform } from "@/types";
 import {
   Tooltip,
@@ -11,8 +10,6 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import Android from "@/assets/Android.png";
 import iOs from "@/assets/iOS.png";
-import Web from "@/assets/Web.png";
-import SmartTv from "@/assets/Smart_Tv.png";
 
 interface SyndicationStatusIconsProps {
   syndication: SyndicationPlatform[];
@@ -32,20 +29,8 @@ export function SyndicationStatusIcons({
 }: SyndicationStatusIconsProps) {
   const getPlatformIcon = (platform: string, isPublished: boolean) => {
     const baseClass = "h-8 w-8";
-    const activeClass = isPublished
-      ? "text-primary"
-      : "text-muted-foreground/40";
 
     switch (platform) {
-      case "Web":
-        return (
-          <img
-            src={Web}
-            alt="web"
-            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
-            style={{ objectFit: "contain" }}
-          />
-        );
       case "iOS":
         return (
           <img
@@ -60,16 +45,6 @@ export function SyndicationStatusIcons({
           <img
             src={Android}
             alt="Android"
-            className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
-            style={{ objectFit: "contain" }}
-          />
-        );
-
-      case "Smart TV":
-        return (
-          <img
-            src={SmartTv}
-            alt="SmartTv"
             className={cn(baseClass, isPublished ? "" : "opacity-40 grayscale")}
             style={{ objectFit: "contain" }}
           />
