@@ -34,7 +34,7 @@ export interface Album {
   id: string;
   nome: string;
   anno: number;
-  coloreDefault?: string;
+  immagineDefault?: string;
   syndication: SyndicationPlatform[];
   createdAt: Date;
 }

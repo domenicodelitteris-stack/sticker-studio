@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Search, Pencil, ImageIcon } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -35,8 +35,7 @@ export default function AlbumPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [pageSize, setPageSize] = useState<number>(10);
-  const [editingColorId, setEditingColorId] = useState<string | null>(null);
-  const [tempColor, setTempColor] = useState<string>("");
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredAlbum = useMemo(() => {
     return album.filter((a) =>
@@ -60,28 +59,39 @@ export default function AlbumPage() {
 
   const getAlbumLogo = (a: Album) => (a as any).logo as string | undefined;
 
-  const handleColorClick = (albumId: string, currentColor: string) => {
-    setEditingColorId(albumId);
-    setTempColor(currentColor);
+  const handleImageClick = (albumId: string) => {
+    if (imageInputRef.current) {
+      imageInputRef.current.dataset.albumId = albumId;
+      imageInputRef.current.click();
+    }
   };
 
-  const handleColorSave = (albumId: string) => {
-    if (tempColor.trim()) {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const albumId = e.target.dataset.albumId;
+    if (!file || !albumId) return;
+
+    if (!file.type.startsWith("image/")) {
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_MB = 2;
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_MB) {
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
       setAlbum(album.map((a) =>
-        a.id === albumId ? { ...a, coloreDefault: tempColor.trim() } : a
+        a.id === albumId ? { ...a, immagineDefault: result } : a
       ));
-    }
-    setEditingColorId(null);
-    setTempColor("");
-  };
-
-  const handleColorKeyDown = (e: React.KeyboardEvent, albumId: string) => {
-    if (e.key === "Enter") {
-      handleColorSave(albumId);
-    } else if (e.key === "Escape") {
-      setEditingColorId(null);
-      setTempColor("");
-    }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   return (
@@ -171,7 +181,7 @@ export default function AlbumPage() {
                 <TableRow>
                   <TableHead className="w-[90px]">Logo</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="w-[80px]">Colore</TableHead>
+                  <TableHead className="w-[90px]">Immagine</TableHead>
                   <TableHead>Pagine</TableHead>
                   <TableHead>Syndication</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
@@ -217,32 +227,26 @@ export default function AlbumPage() {
                         </TableCell>
 
                         <TableCell>
-                          {editingColorId === albumItem.id ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="color"
-                                value={tempColor}
-                                onChange={(e) => setTempColor(e.target.value)}
-                                className="w-8 h-8 cursor-pointer border rounded"
+                          <div
+                            className="w-12 h-12 rounded border cursor-pointer hover:ring-2 hover:ring-primary transition-all overflow-hidden"
+                            title="Clicca per cambiare immagine"
+                            onClick={() => handleImageClick(albumItem.id)}
+                          >
+                            {albumItem.immagineDefault ? (
+                              <img
+                                src={albumItem.immagineDefault}
+                                alt="Immagine default"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
                               />
-                              <Input
-                                value={tempColor}
-                                onChange={(e) => setTempColor(e.target.value)}
-                                onKeyDown={(e) => handleColorKeyDown(e, albumItem.id)}
-                                onBlur={() => handleColorSave(albumItem.id)}
-                                autoFocus
-                                className="w-24 h-8 text-xs"
-                                placeholder="#3b82f6"
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className="w-8 h-8 rounded border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                              style={{ backgroundColor: albumItem.coloreDefault || "#3b82f6" }}
-                              title={`Clicca per modificare: ${albumItem.coloreDefault || "#3b82f6"}`}
-                              onClick={() => handleColorClick(albumItem.id, albumItem.coloreDefault || "#3b82f6")}
-                            />
-                          )}
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
 
                         <TableCell>{getPagineCount(albumItem.id)}</TableCell>
@@ -285,6 +289,14 @@ export default function AlbumPage() {
             </Table>
           </CardContent>
         </Card>
+
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

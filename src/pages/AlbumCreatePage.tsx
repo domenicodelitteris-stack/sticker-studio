@@ -21,11 +21,66 @@ export default function AlbumCreatePage() {
   const [formData, setFormData] = useState({
     nome: "",
     anno: new Date().getFullYear(),
-    coloreDefault: "#3b82f6",
+    immagineDefault: "",
+    immagineDefaultFileName: "",
     syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
     logo: "",
     logoFileName: "",
   });
+  
+  const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
+  const openImmagineDefaultPicker = () => immagineDefaultInputRef.current?.click();
+
+  const handleImmagineDefaultChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "File non valido",
+        description: "Seleziona un file immagine (PNG, JPG, WEBP...)",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_MB = 2;
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_MB) {
+      toast({
+        title: "Immagine troppo grande",
+        description: `Scegli un'immagine più piccola di ${MAX_MB}MB`,
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setFormData((prev) => ({
+        ...prev,
+        immagineDefault: result,
+        immagineDefaultFileName: file.name,
+      }));
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Errore",
+        description: "Non sono riuscito a leggere il file",
+        variant: "destructive",
+      });
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleRemoveImmagineDefault = () => {
+    setFormData((prev) => ({ ...prev, immagineDefault: "", immagineDefaultFileName: "" }));
+  };
 
   const openLogoPicker = () => logoInputRef.current?.click();
 
@@ -94,7 +149,7 @@ export default function AlbumCreatePage() {
       id: crypto.randomUUID(),
       nome: formData.nome.trim(),
       anno: formData.anno,
-      coloreDefault: formData.coloreDefault,
+      immagineDefault: formData.immagineDefault || undefined,
       syndication: formData.syndication,
       ...(formData.logo ? { logo: formData.logo } : {}),
       ...(formData.logo
@@ -158,30 +213,53 @@ export default function AlbumCreatePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="colore">Colore Default</Label>
+                  <Label>Immagine Default</Label>
+
+                  <input
+                    ref={immagineDefaultInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImmagineDefaultChange}
+                  />
+
                   <div className="flex items-center gap-3">
-                    <input
-                      id="colore"
-                      type="color"
-                      value={formData.coloreDefault}
-                      onChange={(e) =>
-                        setFormData({ ...formData, coloreDefault: e.target.value })
-                      }
-                      className="w-12 h-10 cursor-pointer border rounded"
-                    />
-                    <Input
-                      value={formData.coloreDefault}
-                      onChange={(e) =>
-                        setFormData({ ...formData, coloreDefault: e.target.value })
-                      }
-                      placeholder="#3b82f6"
-                      className="
-                        flex-1 rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none
-                        focus-visible:ring-0 focus-visible:ring-offset-0
-                        border-muted-foreground/30 focus:border-b-4 focus:border-pink-500
-                        transition-all duration-200
-                      "
-                    />
+                    <Button type="button" onClick={openImmagineDefaultPicker}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Carica immagine
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                      {formData.immagineDefaultFileName || "Nessun file selezionato"}
+                    </span>
+
+                    {formData.immagineDefault && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleRemoveImmagineDefault}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Rimuovi
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="mt-2 border rounded-lg overflow-hidden w-32">
+                    {formData.immagineDefault ? (
+                      <img
+                        src={formData.immagineDefault}
+                        alt="Immagine default"
+                        className="w-full aspect-square object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
