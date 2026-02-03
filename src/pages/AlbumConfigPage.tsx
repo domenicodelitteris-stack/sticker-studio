@@ -8,6 +8,8 @@ import {
   Save,
   Loader2,
   ImageIcon,
+  Upload,
+  X,
 } from "lucide-react";
 
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -41,6 +43,10 @@ import {
 } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SyndicationSection } from "@/components/SyndicationSection";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useRef } from "react";
 
 export default function AlbumConfigPage() {
   const { albumId } = useParams<{ albumId: string }>();
@@ -49,6 +55,7 @@ export default function AlbumConfigPage() {
   const [albums, setAlbums] = useLocalStorage<Album[]>("album", []);
   const [pagine, setPagine] = useLocalStorage<Pagina[]>("pagine", []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // ✅ Nuovo: quante righe mostrare
   const [pageSize, setPageSize] = useState<number>(10);
@@ -78,11 +85,26 @@ export default function AlbumConfigPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
+  // Stato per modifica dettagli album
+  const [draftNome, setDraftNome] = useState("");
+  const [draftLogo, setDraftLogo] = useState("");
+  const [draftLogoFileName, setDraftLogoFileName] = useState("");
+  const [draftImmagineDefault, setDraftImmagineDefault] = useState("");
+  const [draftImmagineDefaultFileName, setDraftImmagineDefaultFileName] = useState("");
+  
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     if (!album) return;
     setAlbumDraftSyndication(
       album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION,
     );
+    setDraftNome(album.nome);
+    setDraftLogo((album as any).logo || "");
+    setDraftLogoFileName((album as any).logoFileName || "");
+    setDraftImmagineDefault(album.immagineDefault || "");
+    setDraftImmagineDefaultFileName("");
     setIsSaving(false);
     setJustSaved(false);
   }, [album?.id]);
@@ -113,6 +135,90 @@ export default function AlbumConfigPage() {
         return found ? { ...p, ordine: found.ordine } : p;
       }),
     );
+  };
+
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "logo" | "immagineDefault"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "File non valido",
+        description: "Seleziona un file immagine (PNG, JPG, WEBP...)",
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_MB = 2;
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > MAX_MB) {
+      toast({
+        title: "Immagine troppo grande",
+        description: `Scegli un'immagine più piccola di ${MAX_MB}MB`,
+        variant: "destructive",
+      });
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      if (type === "logo") {
+        setDraftLogo(result);
+        setDraftLogoFileName(file.name);
+      } else {
+        setDraftImmagineDefault(result);
+        setDraftImmagineDefaultFileName(file.name);
+      }
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Errore",
+        description: "Non sono riuscito a leggere il file",
+        variant: "destructive",
+      });
+    };
+
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const saveAlbumDetails = async () => {
+    if (!albumId || !draftNome.trim()) return;
+
+    setIsSaving(true);
+    setJustSaved(false);
+
+    setAlbums(
+      albums.map((a) =>
+        a.id === albumId
+          ? {
+              ...a,
+              nome: draftNome.trim(),
+              immagineDefault: draftImmagineDefault || undefined,
+              logo: draftLogo || undefined,
+              logoFileName: draftLogoFileName || undefined,
+              syndication: albumDraftSyndication,
+            } as any
+          : a
+      )
+    );
+    await new Promise((r) => setTimeout(r, 450));
+
+    setIsSaving(false);
+    setJustSaved(true);
+    window.setTimeout(() => setJustSaved(false), 1200);
+
+    toast({
+      title: "Salvato",
+      description: "I dettagli dell'album sono stati aggiornati",
+    });
   };
 
   const saveAlbumSyndication = async () => {
@@ -166,6 +272,145 @@ export default function AlbumConfigPage() {
             Torna agli Album
           </Button>
         </div>
+
+        {/* Dettagli Album */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Dettagli Album</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-3 gap-6 items-start">
+              {/* Nome */}
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome</Label>
+                <Input
+                  id="nome"
+                  value={draftNome}
+                  onChange={(e) => setDraftNome(e.target.value)}
+                  placeholder="Nome album"
+                  className="
+                    rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none
+                    focus-visible:ring-0 focus-visible:ring-offset-0
+                    border-muted-foreground/30 focus:border-b-4 focus:border-pink-500
+                    transition-all duration-200
+                  "
+                />
+              </div>
+
+              {/* Logo Album */}
+              <div className="space-y-2">
+                <Label>Logo Album</Label>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "logo")}
+                />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => logoInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftLogoFileName || (draftLogo ? "Logo salvato" : "Nessun file")}
+                  </span>
+                  {draftLogo && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setDraftLogo(""); setDraftLogoFileName(""); }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftLogo ? (
+                    <img
+                      src={draftLogo}
+                      alt="Logo album"
+                      className="w-full aspect-square object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Immagine Default */}
+              <div className="space-y-2">
+                <Label>Immagine Default</Label>
+                <input
+                  ref={immagineDefaultInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "immagineDefault")}
+                />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => immagineDefaultInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftImmagineDefaultFileName || (draftImmagineDefault ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftImmagineDefault && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setDraftImmagineDefault(""); setDraftImmagineDefaultFileName(""); }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftImmagineDefault ? (
+                    <img
+                      src={draftImmagineDefault}
+                      alt="Immagine default"
+                      className="w-full aspect-square object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={saveAlbumDetails} disabled={isSaving || !draftNome.trim()}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvataggio...
+                  </>
+                ) : justSaved ? (
+                  <>Salvato ✓</>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salva Dettagli
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
