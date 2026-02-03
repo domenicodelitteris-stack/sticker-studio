@@ -145,6 +145,7 @@ export default function AlbumPage() {
                 <TableRow>
                   <TableHead className="w-[90px]">Logo</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead className="w-[80px]">Colore</TableHead>
                   <TableHead>Pagine</TableHead>
                   <TableHead>Syndication</TableHead>
                   <TableHead className="text-right">Azioni</TableHead>
@@ -155,7 +156,7 @@ export default function AlbumPage() {
                 {filteredAlbum.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="text-center text-muted-foreground py-8"
                     >
                       Nessun album trovato
@@ -187,6 +188,14 @@ export default function AlbumPage() {
 
                         <TableCell className="font-medium">
                           {albumItem.nome}
+                        </TableCell>
+
+                        <TableCell>
+                          <div
+                            className="w-8 h-8 rounded border"
+                            style={{ backgroundColor: albumItem.coloreDefault || "#3b82f6" }}
+                            title={albumItem.coloreDefault || "#3b82f6"}
+                          />
                         </TableCell>
 
                         <TableCell>{getPagineCount(albumItem.id)}</TableCell>

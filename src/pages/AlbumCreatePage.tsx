@@ -21,6 +21,7 @@ export default function AlbumCreatePage() {
   const [formData, setFormData] = useState({
     nome: "",
     anno: new Date().getFullYear(),
+    coloreDefault: "#3b82f6",
     syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
     logo: "",
     logoFileName: "",
@@ -93,6 +94,7 @@ export default function AlbumCreatePage() {
       id: crypto.randomUUID(),
       nome: formData.nome.trim(),
       anno: formData.anno,
+      coloreDefault: formData.coloreDefault,
       syndication: formData.syndication,
       ...(formData.logo ? { logo: formData.logo } : {}),
       ...(formData.logo
@@ -136,7 +138,7 @@ export default function AlbumCreatePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6 items-start">
+              <div className="grid grid-cols-3 gap-6 items-start">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome</Label>
                   <Input
@@ -153,6 +155,34 @@ export default function AlbumCreatePage() {
                       transition-all duration-200
                     "
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="colore">Colore Default</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="colore"
+                      type="color"
+                      value={formData.coloreDefault}
+                      onChange={(e) =>
+                        setFormData({ ...formData, coloreDefault: e.target.value })
+                      }
+                      className="w-12 h-10 cursor-pointer border rounded"
+                    />
+                    <Input
+                      value={formData.coloreDefault}
+                      onChange={(e) =>
+                        setFormData({ ...formData, coloreDefault: e.target.value })
+                      }
+                      placeholder="#3b82f6"
+                      className="
+                        flex-1 rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none
+                        focus-visible:ring-0 focus-visible:ring-offset-0
+                        border-muted-foreground/30 focus:border-b-4 focus:border-pink-500
+                        transition-all duration-200
+                      "
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
