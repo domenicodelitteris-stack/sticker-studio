@@ -1,29 +1,13 @@
 import { useRef, useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  ImageIcon,
-  Search,
-  Check,
-  Upload,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ImageIcon, Search, Check, Upload, X } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,9 +48,7 @@ export default function PaginaConfigPage() {
   const preselectedAlbumId = searchParams.get("albumId");
   const pagina = isNew ? null : pagine.find((p) => p.id === paginaId);
 
-  const album = albums.find(
-    (a) => a.id === (pagina?.albumId || preselectedAlbumId),
-  );
+  const album = albums.find((a) => a.id === (pagina?.albumId || preselectedAlbumId));
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -79,9 +61,7 @@ export default function PaginaConfigPage() {
 
   const paginaFigurine = useMemo(() => {
     if (!paginaId || isNew) return [];
-    return figurine
-      .filter((f) => f.paginaId === paginaId)
-      .sort((a, b) => (a.ordine || 0) - (b.ordine || 0));
+    return figurine.filter((f) => f.paginaId === paginaId).sort((a, b) => (a.ordine || 0) - (b.ordine || 0));
   }, [figurine, paginaId, isNew]);
 
   const getFigurinaAlbumId = (f: Figurina) => {
@@ -100,9 +80,7 @@ export default function PaginaConfigPage() {
       return fAlbumId === formData.albumId;
     });
 
-    const filtered = q
-      ? sameAlbum.filter((f) => f.nome.toLowerCase().includes(q))
-      : sameAlbum;
+    const filtered = q ? sameAlbum.filter((f) => f.nome.toLowerCase().includes(q)) : sameAlbum;
 
     filtered.sort((a, b) => (a.numero || 0) - (b.numero || 0));
     return filtered;
@@ -228,9 +206,7 @@ export default function PaginaConfigPage() {
   };
 
   const handleCancel = () => {
-    const returnUrl = formData.albumId
-      ? `/album/${formData.albumId}`
-      : "/album";
+    const returnUrl = formData.albumId ? `/album/${formData.albumId}` : "/album";
     navigate(returnUrl);
   };
 
@@ -276,39 +252,25 @@ export default function PaginaConfigPage() {
           description: "La figurina è stata rimossa dalla pagina",
         });
 
-        return prev.map((f) =>
-          f.id === figurinaIdToToggle
-            ? { ...f, paginaId: "", ordine: undefined }
-            : f,
-        );
+        return prev.map((f) => (f.id === figurinaIdToToggle ? { ...f, paginaId: "", ordine: undefined } : f));
       }
 
       const existing = prev.filter((f) => f.paginaId === paginaId);
-      const nextOrdine =
-        existing.length === 0
-          ? 1
-          : Math.max(...existing.map((f) => f.ordine || 0)) + 1;
+      const nextOrdine = existing.length === 0 ? 1 : Math.max(...existing.map((f) => f.ordine || 0)) + 1;
 
       toast({
         title: "Figurina aggiunta",
         description: "La figurina è stata aggiunta alla pagina",
       });
 
-      return prev.map((f) =>
-        f.id === figurinaIdToToggle
-          ? { ...f, paginaId, ordine: nextOrdine }
-          : f,
-      );
+      return prev.map((f) => (f.id === figurinaIdToToggle ? { ...f, paginaId, ordine: nextOrdine } : f));
     });
   };
 
   if (!isNew && !pagina) {
     return (
       <>
-        <AppHeader
-          title="Configurazione Pagina"
-          breadcrumb="Pagina > Configurazione"
-        />
+        <AppHeader title="Configurazione Pagina" breadcrumb="Pagina > Configurazione" />
         <PageHeader title="Pagina non trovata" />
         <div className="flex-1 p-6">
           <Button onClick={() => navigate("/album")}>
@@ -321,9 +283,7 @@ export default function PaginaConfigPage() {
   }
 
   // ✅ testo a destra del bottone
-  const bgFileLabel =
-    formData.bgFileName ||
-    (formData.backgroundLink ? "Immagine salvata" : "Nessun file selezionato");
+  const bgFileLabel = formData.bgFileName || (formData.backgroundLink ? "Immagine salvata" : "Nessun file selezionato");
 
   return (
     <>
@@ -331,9 +291,7 @@ export default function PaginaConfigPage() {
         title="Configurazione Pagina"
         breadcrumb={`Album > ${album?.nome || "..."} > ${isNew ? "Nuova Pagina" : pagina?.nome}`}
       />
-      <PageHeader
-        title={isNew ? "Nuova Pagina" : `Configurazione: ${pagina?.nome}`}
-      />
+      <PageHeader title={isNew ? "Nuova Pagina" : `Configurazione: ${pagina?.nome}`} />
 
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <div className="flex items-center gap-4">
@@ -355,9 +313,7 @@ export default function PaginaConfigPage() {
                   <Input
                     id="nome"
                     value={formData.nome}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nome: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                     placeholder="Nome pagina"
                     className="rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 border-muted-foreground/30 focus:border-b-4 focus:border-pink-500 transition-all duration-200"
                   />
@@ -378,16 +334,10 @@ export default function PaginaConfigPage() {
                       Carica immagine
                     </Button>
 
-                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">
-                      {bgFileLabel}
-                    </span>
+                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">{bgFileLabel}</span>
 
                     {formData.backgroundLink && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleRemoveBg}
-                      >
+                      <Button type="button" variant="outline" onClick={handleRemoveBg}>
                         <X className="h-4 w-4 mr-2" />
                         Rimuovi
                       </Button>
@@ -420,9 +370,7 @@ export default function PaginaConfigPage() {
                 <Button variant="outline" onClick={handleCancel}>
                   Annulla
                 </Button>
-                <Button onClick={handleSave}>
-                  {isNew ? "Crea Pagina" : "Salva Modifiche"}
-                </Button>
+                <Button onClick={handleSave}>{isNew ? "Crea Pagina" : "Salva Modifiche"}</Button>
               </div>
             </div>
           </CardContent>
@@ -452,10 +400,7 @@ export default function PaginaConfigPage() {
                 <TableBody>
                   {paginaFigurine.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center text-muted-foreground py-8"
-                      >
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Nessuna figurina inserita
                       </TableCell>
                     </TableRow>
@@ -480,9 +425,7 @@ export default function PaginaConfigPage() {
                                 cursor-pointer
                               "
                               value={idx}
-                              onChange={(e) =>
-                                setFigurinaPosition(fig.id, Number(e.target.value))
-                              }
+                              onChange={(e) => setFigurinaPosition(fig.id, Number(e.target.value))}
                             >
                               {paginaFigurine.map((_, i) => (
                                 <option key={i} value={i}>
@@ -492,9 +435,7 @@ export default function PaginaConfigPage() {
                             </select>
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {fig.nome}
-                        </TableCell>
+                        <TableCell className="font-medium">{fig.nome}</TableCell>
                         <TableCell>{fig.tipo}</TableCell>
                         <TableCell>
                           {fig.link ? (
@@ -503,8 +444,7 @@ export default function PaginaConfigPage() {
                               alt={fig.nome}
                               className="w-12 h-16 object-cover rounded border"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  "none";
+                                (e.target as HTMLImageElement).style.display = "none";
                               }}
                             />
                           ) : (
@@ -537,8 +477,8 @@ export default function PaginaConfigPage() {
           <DialogHeader>
             <DialogTitle>Seleziona figurine</DialogTitle>
             <DialogDescription>
-              Mostro solo le figurine dell’album: <b>{album?.nome || "—"}</b>.
-              Puoi selezionare/deselezionare più figurine.
+              Mostro solo le figurine dell’album: <b>{album?.nome || "—"}</b>. Puoi selezionare/deselezionare più
+              figurine.
             </DialogDescription>
           </DialogHeader>
 
@@ -549,10 +489,18 @@ export default function PaginaConfigPage() {
                 value={pickQuery}
                 onChange={(e) => setPickQuery(e.target.value)}
                 className="
-                  rounded-none border-0 border-b-2 bg-transparent px-0 shadow-none
-                  focus-visible:ring-0 focus-visible:ring-offset-0
-                  border-muted-foreground/30 focus:border-b-4 
-                  transition-all duration-200
+                  rounded-none
+                    border-0
+                    border-b-2
+                    bg-transparent
+                    px-0
+                    shadow-none
+                    focus-visible:ring-0
+                    focus-visible:ring-offset-0
+                    border-muted-foreground/30
+                    focus:border-b-4
+                    focus:border-pink-500
+                    transition-all duration-200
                 "
               />
             </div>
@@ -575,10 +523,7 @@ export default function PaginaConfigPage() {
               <TableBody>
                 {figurineDisponibili.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center text-muted-foreground py-8"
-                    >
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                       Nessuna figurina trovata per questo album
                     </TableCell>
                   </TableRow>
@@ -587,10 +532,7 @@ export default function PaginaConfigPage() {
                     const isSelected = !isNew && f.paginaId === paginaId;
 
                     return (
-                      <TableRow
-                        key={f.id}
-                        className={isSelected ? "bg-muted/50" : ""}
-                      >
+                      <TableRow key={f.id} className={isSelected ? "bg-muted/50" : ""}>
                         <TableCell className="font-medium">{f.nome}</TableCell>
                         <TableCell>{f.tipo}</TableCell>
                         <TableCell>
@@ -600,8 +542,7 @@ export default function PaginaConfigPage() {
                               alt={f.nome}
                               className="w-12 h-16 object-cover rounded border"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  "none";
+                                (e.target as HTMLImageElement).style.display = "none";
                               }}
                             />
                           ) : (
@@ -651,15 +592,12 @@ export default function PaginaConfigPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
             <AlertDialogDescription>
-              Sei sicuro di voler eliminare questa figurina? Questa azione non
-              può essere annullata.
+              Sei sicuro di voler eliminare questa figurina? Questa azione non può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteFigurina}>
-              Elimina
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteFigurina}>Elimina</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
