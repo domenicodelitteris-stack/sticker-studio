@@ -79,7 +79,10 @@ export default function PacchettoConfigPage() {
       pacchetto?.syndication ||
       ([...DEFAULT_SYNDICATION] as SyndicationPlatform[]),
     albumId: pacchetto?.albumId || "",
-    figurineSelezionate: pacchetto?.figurine || ([] as PacchettoFigurina[]),
+    figurineSelezionate: (pacchetto?.figurine || []).map((f) => ({
+      ...f,
+      frequenza: f.frequenza ?? 0,
+    })) as (PacchettoFigurina & { frequenza: number })[],
   });
   const [numFigurineText, setNumFigurineText] = useState(
     String(pacchetto?.numFigurine ?? 1),
@@ -135,7 +138,7 @@ export default function PacchettoConfigPage() {
       setFormData({
         ...formData,
         figurineSelezionate: updated,
-        numFigurine: updated.length,
+        numFigurine: formData.tipo === "statico" ? updated.length : formData.numFigurine,
       });
       toast({
         title: "Figurina rimossa",
@@ -146,19 +149,34 @@ export default function PacchettoConfigPage() {
         (max, f) => Math.max(max, f.ordine),
         0,
       );
+      const newFigurina = { figurinaId, ordine: maxOrdine + 1, frequenza: 0 };
       setFormData({
         ...formData,
-        figurineSelezionate: [
-          ...formData.figurineSelezionate,
-          { figurinaId, ordine: maxOrdine + 1 },
-        ],
-        numFigurine: formData.figurineSelezionate.length + 1,
+        figurineSelezionate: [...formData.figurineSelezionate, newFigurina],
+        numFigurine: formData.tipo === "statico" 
+          ? formData.figurineSelezionate.length + 1 
+          : formData.numFigurine,
       });
       toast({
         title: "Figurina aggiunta",
         description: "La figurina è stata aggiunta al pacchetto",
       });
     }
+  };
+
+  // Calculate total frequency for dynamic packets
+  const totalFrequenza = useMemo(() => {
+    if (formData.tipo !== "dinamico") return 100;
+    return formData.figurineSelezionate.reduce((sum, f) => sum + (f.frequenza || 0), 0);
+  }, [formData.figurineSelezionate, formData.tipo]);
+
+  const handleFrequenzaChange = (figurinaId: string, newFrequenza: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      figurineSelezionate: prev.figurineSelezionate.map((f) =>
+        f.figurinaId === figurinaId ? { ...f, frequenza: newFrequenza } : f
+      ),
+    }));
   };
   useEffect(() => {
     if (formData.tipo !== "statico") return;
@@ -208,11 +226,13 @@ export default function PacchettoConfigPage() {
         .map((f, idx) => ({
           figurinaId: f.id,
           ordine: selectedSorted.length + idx + 1,
+          frequenza: 0,
         }));
 
       const next = [...selectedSorted, ...missing].map((x, i) => ({
         ...x,
         ordine: i + 1,
+        frequenza: x.frequenza ?? 0,
       }));
 
       setFormData((prev) => ({
@@ -266,13 +286,13 @@ export default function PacchettoConfigPage() {
       (max, f) => Math.max(max, f.ordine),
       0,
     );
+    const newFigurina = { figurinaId, ordine: maxOrdine + 1, frequenza: 0 };
     setFormData({
       ...formData,
-      figurineSelezionate: [
-        ...formData.figurineSelezionate,
-        { figurinaId, ordine: maxOrdine + 1 },
-      ],
-      numFigurine: formData.figurineSelezionate.length + 1,
+      figurineSelezionate: [...formData.figurineSelezionate, newFigurina],
+      numFigurine: formData.tipo === "statico" 
+        ? formData.figurineSelezionate.length + 1 
+        : formData.numFigurine,
     });
   };
 
@@ -283,7 +303,9 @@ export default function PacchettoConfigPage() {
         .sort((a, b) => a.ordine - b.ordine)
         .map((x, i) => ({ ...x, ordine: i + 1 }));
 
-      const nextNum = Math.max(1, updated.length);
+      const nextNum = prev.tipo === "statico" 
+        ? Math.max(1, updated.length) 
+        : prev.numFigurine;
 
       return {
         ...prev,
@@ -330,20 +352,30 @@ export default function PacchettoConfigPage() {
       return;
     }
 
+    // Validation for dynamic packets: sum of frequencies must be 100
+    if (formData.tipo === "dinamico" && formData.figurineSelezionate.length > 0) {
+      if (totalFrequenza !== 100) {
+        toast({
+          title: "Errore",
+          description: `La somma delle frequenze deve essere 100% (attuale: ${totalFrequenza}%)`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (isNew) {
       const newPacchetto: Pacchetto = {
         id: crypto.randomUUID(),
         nome: formData.nome,
-        numFigurine:
-          formData.figurineSelezionate.length || formData.numFigurine,
+        numFigurine: formData.numFigurine,
         tipo: formData.tipo,
         syndication: formData.syndication,
         createdAt: new Date(),
-        albumId: formData.tipo === "statico" ? formData.albumId : undefined,
-        figurine:
-          formData.tipo === "statico"
-            ? formData.figurineSelezionate
-            : undefined,
+        albumId: formData.albumId || undefined,
+        figurine: formData.figurineSelezionate.length > 0 
+          ? formData.figurineSelezionate 
+          : undefined,
       };
       setPacchetti([...pacchetti, newPacchetto]);
       toast({
@@ -357,15 +389,12 @@ export default function PacchettoConfigPage() {
             ? {
                 ...p,
                 nome: formData.nome,
-                numFigurine:
-                  formData.figurineSelezionate.length || formData.numFigurine,
+                numFigurine: formData.numFigurine,
                 syndication: formData.syndication,
-                albumId:
-                  formData.tipo === "statico" ? formData.albumId : undefined,
-                figurine:
-                  formData.tipo === "statico"
-                    ? formData.figurineSelezionate
-                    : undefined,
+                albumId: formData.albumId || undefined,
+                figurine: formData.figurineSelezionate.length > 0 
+                  ? formData.figurineSelezionate 
+                  : undefined,
               }
             : p,
         ),
@@ -577,6 +606,9 @@ export default function PacchettoConfigPage() {
                             <TableHead className="w-16">Ordine</TableHead>
                             <TableHead className="w-20">Preview</TableHead>
                             <TableHead>Nome</TableHead>
+                            {formData.tipo === "dinamico" && (
+                              <TableHead className="w-32">Frequenza %</TableHead>
+                            )}
                             <TableHead className="text-right">Azioni</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -626,6 +658,27 @@ export default function PacchettoConfigPage() {
 
                               <TableCell>{pf.figurina?.nome}</TableCell>
 
+                              {formData.tipo === "dinamico" && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={pf.frequenza ?? 0}
+                                      onChange={(e) =>
+                                        handleFrequenzaChange(
+                                          pf.figurinaId,
+                                          Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                                        )
+                                      }
+                                      className="w-20 h-8 text-center"
+                                    />
+                                    <span className="text-sm text-muted-foreground">%</span>
+                                  </div>
+                                </TableCell>
+                              )}
+
                               <TableCell className="text-right">
                                 <Button
                                   variant="ghost"
@@ -642,6 +695,31 @@ export default function PacchettoConfigPage() {
                           ))}
                         </TableBody>
                       </Table>
+                    )}
+                    {formData.tipo === "dinamico" && figurineNelPacchetto.length > 0 && (
+                      <div className={`mt-4 p-3 rounded-lg border ${
+                        totalFrequenza === 100 
+                          ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" 
+                          : "bg-destructive/10 border-destructive/30"
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">
+                            Somma frequenze:
+                          </span>
+                          <span className={`text-lg font-bold ${
+                            totalFrequenza === 100 
+                              ? "text-green-600 dark:text-green-400" 
+                              : "text-destructive"
+                          }`}>
+                            {totalFrequenza}%
+                          </span>
+                        </div>
+                        {totalFrequenza !== 100 && (
+                          <p className="text-xs text-destructive mt-1">
+                            La somma deve essere esattamente 100%
+                          </p>
+                        )}
+                      </div>
                     )}
                   </CardContent>
                 </Card>
