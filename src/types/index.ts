@@ -43,6 +43,7 @@ export interface Album {
 export interface PacchettoFigurina {
   figurinaId: string;
   ordine: number;
+  frequenza?: number; // 0-100, used for dynamic packets
 }
 
 export interface Pacchetto {
