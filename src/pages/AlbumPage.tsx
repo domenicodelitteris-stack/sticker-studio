@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Search, Pencil, ImageIcon } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -35,7 +35,6 @@ export default function AlbumPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [pageSize, setPageSize] = useState<number>(10);
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredAlbum = useMemo(() => {
     return album.filter((a) =>
@@ -58,41 +57,6 @@ export default function AlbumPage() {
   };
 
   const getAlbumLogo = (a: Album) => (a as any).logo as string | undefined;
-
-  const handleImageClick = (albumId: string) => {
-    if (imageInputRef.current) {
-      imageInputRef.current.dataset.albumId = albumId;
-      imageInputRef.current.click();
-    }
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    const albumId = e.target.dataset.albumId;
-    if (!file || !albumId) return;
-
-    if (!file.type.startsWith("image/")) {
-      e.target.value = "";
-      return;
-    }
-
-    const MAX_MB = 2;
-    const sizeMb = file.size / (1024 * 1024);
-    if (sizeMb > MAX_MB) {
-      e.target.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setAlbum(album.map((a) =>
-        a.id === albumId ? { ...a, immagineDefault: result } : a
-      ));
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
-  };
 
   return (
     <>
@@ -227,11 +191,7 @@ export default function AlbumPage() {
                         </TableCell>
 
                         <TableCell>
-                          <div
-                            className="w-12 h-12 rounded border cursor-pointer hover:ring-2 hover:ring-primary transition-all overflow-hidden"
-                            title="Clicca per cambiare immagine"
-                            onClick={() => handleImageClick(albumItem.id)}
-                          >
+                          <div className="w-12 h-12 rounded border overflow-hidden">
                             {albumItem.immagineDefault ? (
                               <img
                                 src={albumItem.immagineDefault}
@@ -290,13 +250,6 @@ export default function AlbumPage() {
           </CardContent>
         </Card>
 
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageChange}
-        />
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
