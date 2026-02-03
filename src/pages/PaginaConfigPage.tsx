@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  ArrowUp,
-  ArrowDown,
   ImageIcon,
   Search,
   Check,
@@ -242,23 +240,23 @@ export default function PaginaConfigPage() {
     setDeleteId(null);
   };
 
-  const moveFigurina = (figurinaIdToMove: string, direction: "up" | "down") => {
-    const idx = paginaFigurine.findIndex((f) => f.id === figurinaIdToMove);
-    if (idx === -1) return;
-    if (direction === "up" && idx === 0) return;
-    if (direction === "down" && idx === paginaFigurine.length - 1) return;
+  const setFigurinaPosition = (figurinaId: string, newIndex: number) => {
+    const oldIndex = paginaFigurine.findIndex((f) => f.id === figurinaId);
+    if (oldIndex === -1 || newIndex === oldIndex) return;
 
-    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-    const currentOrdine = paginaFigurine[idx].ordine;
-    const swapOrdine = paginaFigurine[swapIdx].ordine;
+    const reordered = [...paginaFigurine];
+    const [moved] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, moved);
+
+    const updatedOrder = reordered.map((f, i) => ({
+      ...f,
+      ordine: i + 1,
+    }));
 
     setFigurine(
       figurine.map((f) => {
-        if (f.id === paginaFigurine[idx].id)
-          return { ...f, ordine: swapOrdine };
-        if (f.id === paginaFigurine[swapIdx].id)
-          return { ...f, ordine: currentOrdine };
-        return f;
+        const found = updatedOrder.find((u) => u.id === f.id);
+        return found ? { ...f, ordine: found.ordine } : f;
       }),
     );
   };
@@ -444,7 +442,7 @@ export default function PaginaConfigPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[80px]">Ordine</TableHead>
+                    <TableHead className="w-[140px]">Ordinamento</TableHead>
                     <TableHead>Titolo</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Miniatura</TableHead>
@@ -465,28 +463,33 @@ export default function PaginaConfigPage() {
                     paginaFigurine.map((fig, idx) => (
                       <TableRow key={fig.id}>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => moveFigurina(fig.id, "up")}
-                              disabled={idx === 0}
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="
+                                h-8
+                                bg-transparent
+                                border-0
+                                border-b
+                                border-muted-foreground/40
+                                rounded-none
+                                px-2
+                                text-sm
+                                focus:outline-none
+                                focus:ring-0
+                                focus:border-primary
+                                cursor-pointer
+                              "
+                              value={idx}
+                              onChange={(e) =>
+                                setFigurinaPosition(fig.id, Number(e.target.value))
+                              }
                             >
-                              <ArrowUp className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => moveFigurina(fig.id, "down")}
-                              disabled={idx === paginaFigurine.length - 1}
-                            >
-                              <ArrowDown className="h-3 w-3" />
-                            </Button>
-                            <span className="text-xs text-muted-foreground ml-1">
-                              {fig.ordine}
-                            </span>
+                              {paginaFigurine.map((_, i) => (
+                                <option key={i} value={i}>
+                                  {i + 1}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </TableCell>
                         <TableCell className="font-medium">
