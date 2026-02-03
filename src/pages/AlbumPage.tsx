@@ -35,6 +35,8 @@ export default function AlbumPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [pageSize, setPageSize] = useState<number>(10);
+  const [editingColorId, setEditingColorId] = useState<string | null>(null);
+  const [tempColor, setTempColor] = useState<string>("");
 
   const filteredAlbum = useMemo(() => {
     return album.filter((a) =>
@@ -57,6 +59,30 @@ export default function AlbumPage() {
   };
 
   const getAlbumLogo = (a: Album) => (a as any).logo as string | undefined;
+
+  const handleColorClick = (albumId: string, currentColor: string) => {
+    setEditingColorId(albumId);
+    setTempColor(currentColor);
+  };
+
+  const handleColorSave = (albumId: string) => {
+    if (tempColor.trim()) {
+      setAlbum(album.map((a) =>
+        a.id === albumId ? { ...a, coloreDefault: tempColor.trim() } : a
+      ));
+    }
+    setEditingColorId(null);
+    setTempColor("");
+  };
+
+  const handleColorKeyDown = (e: React.KeyboardEvent, albumId: string) => {
+    if (e.key === "Enter") {
+      handleColorSave(albumId);
+    } else if (e.key === "Escape") {
+      setEditingColorId(null);
+      setTempColor("");
+    }
+  };
 
   return (
     <>
@@ -191,11 +217,32 @@ export default function AlbumPage() {
                         </TableCell>
 
                         <TableCell>
-                          <div
-                            className="w-8 h-8 rounded border"
-                            style={{ backgroundColor: albumItem.coloreDefault || "#3b82f6" }}
-                            title={albumItem.coloreDefault || "#3b82f6"}
-                          />
+                          {editingColorId === albumItem.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={tempColor}
+                                onChange={(e) => setTempColor(e.target.value)}
+                                className="w-8 h-8 cursor-pointer border rounded"
+                              />
+                              <Input
+                                value={tempColor}
+                                onChange={(e) => setTempColor(e.target.value)}
+                                onKeyDown={(e) => handleColorKeyDown(e, albumItem.id)}
+                                onBlur={() => handleColorSave(albumItem.id)}
+                                autoFocus
+                                className="w-24 h-8 text-xs"
+                                placeholder="#3b82f6"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="w-8 h-8 rounded border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                              style={{ backgroundColor: albumItem.coloreDefault || "#3b82f6" }}
+                              title={`Clicca per modificare: ${albumItem.coloreDefault || "#3b82f6"}`}
+                              onClick={() => handleColorClick(albumItem.id, albumItem.coloreDefault || "#3b82f6")}
+                            />
+                          )}
                         </TableCell>
 
                         <TableCell>{getPagineCount(albumItem.id)}</TableCell>
