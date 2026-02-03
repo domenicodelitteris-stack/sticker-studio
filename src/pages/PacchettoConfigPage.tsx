@@ -536,48 +536,48 @@ export default function PacchettoConfigPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Tipo</Label>
-                <div className="text-sm text-muted-foreground capitalize">
-                  {formData.tipo}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="album">Album</Label>
-                <Select
-                  value={formData.albumId}
-                  onValueChange={handleAlbumChange}
-                >
-                  <SelectTrigger
-                    className="
-                              w-1/2
-                              text-sm
-                              rounded-none
-                              border-0
-                              border-b-2
-                              bg-transparent
-                              px-0
-                              py-0
-                              shadow-none
-                              focus:ring-0
-                              focus:ring-offset-0
-                              border-muted-foreground/30
-                              focus:border-b-4
-                              focus:border-pink-500
-                              transition-all duration-200
-                            "
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="album">Album</Label>
+                  <Select
+                    value={formData.albumId}
+                    onValueChange={handleAlbumChange}
                   >
-                    <SelectValue placeholder="Seleziona un album" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {albums.map((album) => (
-                      <SelectItem key={album.id} value={album.id}>
-                        {album.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      className="
+                                text-sm
+                                rounded-none
+                                border-0
+                                border-b-2
+                                bg-transparent
+                                px-0
+                                py-0
+                                shadow-none
+                                focus:ring-0
+                                focus:ring-offset-0
+                                border-muted-foreground/30
+                                focus:border-b-4
+                                focus:border-pink-500
+                                transition-all duration-200
+                              "
+                    >
+                      <SelectValue placeholder="Seleziona un album" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {albums.map((album) => (
+                        <SelectItem key={album.id} value={album.id}>
+                          {album.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <div className="text-sm text-muted-foreground capitalize pt-2">
+                    {formData.tipo}
+                  </div>
+                </div>
               </div>
 
               {formData.albumId && (
