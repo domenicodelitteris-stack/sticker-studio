@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Search, Pencil, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Search, Pencil, ImageIcon, Zap } from "lucide-react";
+import { testApi } from "@/services/api";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -108,10 +109,23 @@ export default function FigurinePage() {
                 </div>
               </div>
 
-              <Button onClick={() => navigate("/figurine/new")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Aggiungi Figurina
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    console.log("🔘 Bottone Test API cliccato");
+                    const result = await testApi();
+                    console.log("📦 Risultato:", result);
+                  }}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Test API
+                </Button>
+                <Button onClick={() => navigate("/figurine/new")}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Aggiungi Figurina
+                </Button>
+              </div>
             </div>
 
             <div className="flex gap-3 flex-wrap">
