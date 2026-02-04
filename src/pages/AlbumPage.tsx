@@ -85,7 +85,6 @@ export default function AlbumPage() {
                       text-sm
                       focus:outline-none
                       focus:ring-0
-                      focus:border-primary
                       cursor-pointer
                     "
                     value={pageSize}
@@ -198,7 +197,8 @@ export default function AlbumPage() {
                                 alt="Immagine default"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = "none";
+                                  (e.target as HTMLImageElement).style.display =
+                                    "none";
                                 }}
                               />
                             ) : (
@@ -249,7 +249,6 @@ export default function AlbumPage() {
             </Table>
           </CardContent>
         </Card>
-
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

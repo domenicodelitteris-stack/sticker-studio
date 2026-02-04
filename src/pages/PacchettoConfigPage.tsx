@@ -138,7 +138,8 @@ export default function PacchettoConfigPage() {
       setFormData({
         ...formData,
         figurineSelezionate: updated,
-        numFigurine: formData.tipo === "statico" ? updated.length : formData.numFigurine,
+        numFigurine:
+          formData.tipo === "statico" ? updated.length : formData.numFigurine,
       });
       toast({
         title: "Figurina rimossa",
@@ -153,9 +154,10 @@ export default function PacchettoConfigPage() {
       setFormData({
         ...formData,
         figurineSelezionate: [...formData.figurineSelezionate, newFigurina],
-        numFigurine: formData.tipo === "statico" 
-          ? formData.figurineSelezionate.length + 1 
-          : formData.numFigurine,
+        numFigurine:
+          formData.tipo === "statico"
+            ? formData.figurineSelezionate.length + 1
+            : formData.numFigurine,
       });
       toast({
         title: "Figurina aggiunta",
@@ -167,14 +169,17 @@ export default function PacchettoConfigPage() {
   // Calculate total frequency for dynamic packets
   const totalFrequenza = useMemo(() => {
     if (formData.tipo !== "dinamico") return 100;
-    return formData.figurineSelezionate.reduce((sum, f) => sum + (f.frequenza || 0), 0);
+    return formData.figurineSelezionate.reduce(
+      (sum, f) => sum + (f.frequenza || 0),
+      0,
+    );
   }, [formData.figurineSelezionate, formData.tipo]);
 
   const handleFrequenzaChange = (figurinaId: string, newFrequenza: number) => {
     setFormData((prev) => ({
       ...prev,
       figurineSelezionate: prev.figurineSelezionate.map((f) =>
-        f.figurinaId === figurinaId ? { ...f, frequenza: newFrequenza } : f
+        f.figurinaId === figurinaId ? { ...f, frequenza: newFrequenza } : f,
       ),
     }));
   };
@@ -290,9 +295,10 @@ export default function PacchettoConfigPage() {
     setFormData({
       ...formData,
       figurineSelezionate: [...formData.figurineSelezionate, newFigurina],
-      numFigurine: formData.tipo === "statico" 
-        ? formData.figurineSelezionate.length + 1 
-        : formData.numFigurine,
+      numFigurine:
+        formData.tipo === "statico"
+          ? formData.figurineSelezionate.length + 1
+          : formData.numFigurine,
     });
   };
 
@@ -303,9 +309,10 @@ export default function PacchettoConfigPage() {
         .sort((a, b) => a.ordine - b.ordine)
         .map((x, i) => ({ ...x, ordine: i + 1 }));
 
-      const nextNum = prev.tipo === "statico" 
-        ? Math.max(1, updated.length) 
-        : prev.numFigurine;
+      const nextNum =
+        prev.tipo === "statico"
+          ? Math.max(1, updated.length)
+          : prev.numFigurine;
 
       return {
         ...prev,
@@ -353,7 +360,10 @@ export default function PacchettoConfigPage() {
     }
 
     // Validation for dynamic packets: sum of frequencies must be 100
-    if (formData.tipo === "dinamico" && formData.figurineSelezionate.length > 0) {
+    if (
+      formData.tipo === "dinamico" &&
+      formData.figurineSelezionate.length > 0
+    ) {
       if (totalFrequenza !== 100) {
         toast({
           title: "Errore",
@@ -373,9 +383,10 @@ export default function PacchettoConfigPage() {
         syndication: formData.syndication,
         createdAt: new Date(),
         albumId: formData.albumId || undefined,
-        figurine: formData.figurineSelezionate.length > 0 
-          ? formData.figurineSelezionate 
-          : undefined,
+        figurine:
+          formData.figurineSelezionate.length > 0
+            ? formData.figurineSelezionate
+            : undefined,
       };
       setPacchetti([...pacchetti, newPacchetto]);
       toast({
@@ -392,9 +403,10 @@ export default function PacchettoConfigPage() {
                 numFigurine: formData.numFigurine,
                 syndication: formData.syndication,
                 albumId: formData.albumId || undefined,
-                figurine: formData.figurineSelezionate.length > 0 
-                  ? formData.figurineSelezionate 
-                  : undefined,
+                figurine:
+                  formData.figurineSelezionate.length > 0
+                    ? formData.figurineSelezionate
+                    : undefined,
               }
             : p,
         ),
@@ -464,19 +476,19 @@ export default function PacchettoConfigPage() {
                     }
                     placeholder="Inserisci nome pacchetto"
                     className="
-                          rounded-none
-                          border-0
-                          border-b-2
-                          bg-transparent
-                          px-0
-                          shadow-none
-                          focus-visible:ring-0
-                          focus-visible:ring-offset-0
-                          border-muted-foreground/30
-                          focus:border-b-4
-                          focus:border-pink-500
-                          transition-all duration-200
-                        "
+                    rounded-none
+                    border-0
+                    border-b-2
+                    bg-transparent
+                    px-0
+                    shadow-none
+                    focus-visible:ring-0
+                    focus-visible:ring-offset-0
+                    border-muted-foreground/30
+                    focus:border-b-4
+                    focus:border-pink-500
+                    transition-all duration-200
+                  "
                   />
                 </div>
                 <div className="space-y-2">
@@ -487,9 +499,7 @@ export default function PacchettoConfigPage() {
                     min={1}
                     max={Math.max(1, figurineAlbum.length)}
                     value={numFigurineText}
-                    onChange={(e) => {
-                      setNumFigurineText(e.target.value);
-                    }}
+                    onChange={(e) => setNumFigurineText(e.target.value)}
                     onBlur={() => {
                       const max = Math.max(1, figurineAlbum.length);
 
@@ -508,19 +518,19 @@ export default function PacchettoConfigPage() {
                       }));
                     }}
                     className="
-                            rounded-none
-                            border-0
-                            border-b-2
-                            bg-transparent
-                            px-0
-                            shadow-none
-                            focus-visible:ring-0
-                            focus-visible:ring-offset-0
-                            border-muted-foreground/30
-                            focus:border-b-4
-                            focus:border-pink-500
-                            transition-all duration-200
-                          "
+                    rounded-none
+                    border-0
+                    border-b-2
+                    bg-transparent
+                    px-0
+                    shadow-none
+                    focus-visible:ring-0
+                    focus-visible:ring-offset-0
+                    border-muted-foreground/30
+                    focus:border-b-4
+                    focus:border-pink-500
+                    transition-all duration-200
+                  "
                   />
                   {formData.albumId ? (
                     <p className="text-xs text-muted-foreground">
@@ -545,21 +555,21 @@ export default function PacchettoConfigPage() {
                   >
                     <SelectTrigger
                       className="
-                                text-sm
-                                rounded-none
-                                border-0
-                                border-b-2
-                                bg-transparent
-                                px-0
-                                py-0
-                                shadow-none
-                                focus:ring-0
-                                focus:ring-offset-0
-                                border-muted-foreground/30
-                                focus:border-b-4
-                                focus:border-pink-500
-                                transition-all duration-200
-                              "
+                      text-sm
+                      rounded-none
+                      border-0
+                      border-b-2
+                      bg-transparent
+                      px-0
+                      py-0
+                      shadow-none
+                      focus:ring-0
+                      focus:ring-offset-0
+                      border-muted-foreground/30
+                      focus:border-b-4
+                      focus:border-pink-500
+                      transition-all duration-200
+                    "
                     >
                       <SelectValue placeholder="Seleziona un album" />
                     </SelectTrigger>
@@ -607,7 +617,9 @@ export default function PacchettoConfigPage() {
                             <TableHead className="w-20">Preview</TableHead>
                             <TableHead>Nome</TableHead>
                             {formData.tipo === "dinamico" && (
-                              <TableHead className="w-32">Frequenza %</TableHead>
+                              <TableHead className="w-32">
+                                Frequenza %
+                              </TableHead>
                             )}
                             <TableHead className="text-right">Azioni</TableHead>
                           </TableRow>
@@ -618,18 +630,18 @@ export default function PacchettoConfigPage() {
                               <TableCell>
                                 <select
                                   className="
-                      h-8
-                      bg-transparent
-                      border-0
-                      border-b
-                      border-muted-foreground/40
-                      rounded-none
-                      px-2
-                      text-sm
-                      focus:outline-none
-                      focus:ring-0
-                      cursor-pointer
-                    "
+                                  h-8
+                                  bg-transparent
+                                  border-0
+                                  border-b
+                                  border-muted-foreground/40
+                                  rounded-none
+                                  px-2
+                                  text-sm
+                                  focus:outline-none
+                                  focus:ring-0
+                                  cursor-pointer
+                                "
                                   value={index}
                                   onChange={(e) =>
                                     setFigurinaPosition(
@@ -669,12 +681,20 @@ export default function PacchettoConfigPage() {
                                       onChange={(e) =>
                                         handleFrequenzaChange(
                                           pf.figurinaId,
-                                          Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                                          Math.min(
+                                            100,
+                                            Math.max(
+                                              0,
+                                              parseInt(e.target.value) || 0,
+                                            ),
+                                          ),
                                         )
                                       }
                                       className="w-20 h-8 text-center"
                                     />
-                                    <span className="text-sm text-muted-foreground">%</span>
+                                    <span className="text-sm text-muted-foreground">
+                                      %
+                                    </span>
                                   </div>
                                 </TableCell>
                               )}
@@ -696,56 +716,64 @@ export default function PacchettoConfigPage() {
                         </TableBody>
                       </Table>
                     )}
-                    {formData.tipo === "dinamico" && figurineNelPacchetto.length > 0 && (
-                      <div className={`mt-4 p-3 rounded-lg border ${
-                        totalFrequenza === 100 
-                          ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" 
-                          : "bg-destructive/10 border-destructive/30"
-                      }`}>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            Somma frequenze:
-                          </span>
-                          <span className={`text-lg font-bold ${
-                            totalFrequenza === 100 
-                              ? "text-green-600 dark:text-green-400" 
-                              : "text-destructive"
-                          }`}>
-                            {totalFrequenza}%
-                          </span>
+
+                    {formData.tipo === "dinamico" &&
+                      figurineNelPacchetto.length > 0 && (
+                        <div
+                          className={`mt-4 p-3 rounded-lg border ${
+                            totalFrequenza === 100
+                              ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800"
+                              : "bg-destructive/10 border-destructive/30"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              Somma frequenze:
+                            </span>
+                            <span
+                              className={`text-lg font-bold ${
+                                totalFrequenza === 100
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-destructive"
+                              }`}
+                            >
+                              {totalFrequenza}%
+                            </span>
+                          </div>
+                          {totalFrequenza !== 100 && (
+                            <p className="text-xs text-destructive mt-1">
+                              La somma deve essere esattamente 100%
+                            </p>
+                          )}
                         </div>
-                        {totalFrequenza !== 100 && (
-                          <p className="text-xs text-destructive mt-1">
-                            La somma deve essere esattamente 100%
-                          </p>
-                        )}
-                      </div>
-                    )}
+                      )}
                   </CardContent>
                 </Card>
               )}
-
-              <SyndicationSection
-                syndication={formData.syndication}
-                onChange={(syndication) =>
-                  setFormData({ ...formData, syndication })
-                }
-              />
-
-              <div className="flex justify-end gap-4 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/pacchetti")}
-                >
-                  Annulla
-                </Button>
-                <Button onClick={handleSave}>
-                  {isNew ? "Crea Pacchetto" : "Salva Modifiche"}
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Syndication Album</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SyndicationSection
+              syndication={formData.syndication}
+              onChange={(syndication) =>
+                setFormData((prev) => ({ ...prev, syndication }))
+              }
+            />
+          </CardContent>
+        </Card>
+        <div className="flex justify-end gap-4 pt-2">
+          <Button variant="outline" onClick={() => navigate("/pacchetti")}>
+            Annulla
+          </Button>
+          <Button onClick={handleSave}>
+            {isNew ? "Crea Pacchetto" : "Salva Modifiche"}
+          </Button>
+        </div>
       </div>
 
       {/* Dialog picker per figurine */}

@@ -27,11 +27,14 @@ export default function AlbumCreatePage() {
     logo: "",
     logoFileName: "",
   });
-  
-  const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
-  const openImmagineDefaultPicker = () => immagineDefaultInputRef.current?.click();
 
-  const handleImmagineDefaultChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
+  const openImmagineDefaultPicker = () =>
+    immagineDefaultInputRef.current?.click();
+
+  const handleImmagineDefaultChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -79,7 +82,11 @@ export default function AlbumCreatePage() {
   };
 
   const handleRemoveImmagineDefault = () => {
-    setFormData((prev) => ({ ...prev, immagineDefault: "", immagineDefaultFileName: "" }));
+    setFormData((prev) => ({
+      ...prev,
+      immagineDefault: "",
+      immagineDefaultFileName: "",
+    }));
   };
 
   const openLogoPicker = () => logoInputRef.current?.click();
@@ -230,7 +237,8 @@ export default function AlbumCreatePage() {
                     </Button>
 
                     <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                      {formData.immagineDefaultFileName || "Nessun file selezionato"}
+                      {formData.immagineDefaultFileName ||
+                        "Nessun file selezionato"}
                     </span>
 
                     {formData.immagineDefault && (
@@ -315,12 +323,6 @@ export default function AlbumCreatePage() {
                 </div>
               </div>
 
-              <SyndicationSection
-                syndication={formData.syndication}
-                onChange={(syndication) =>
-                  setFormData({ ...formData, syndication })
-                }
-              />
               <div className="flex justify-end gap-4 pt-2">
                 <Button variant="outline" onClick={() => navigate("/album")}>
                   Annulla
@@ -330,6 +332,21 @@ export default function AlbumCreatePage() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle>Syndication Album</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <SyndicationSection
+              syndication={formData.syndication}
+              onChange={(syndication) =>
+                setFormData({ ...formData, syndication })
+              }
+            />
           </CardContent>
         </Card>
       </div>
