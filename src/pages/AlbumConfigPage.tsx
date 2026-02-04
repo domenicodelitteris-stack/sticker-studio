@@ -97,9 +97,20 @@ export default function AlbumConfigPage() {
 
   useEffect(() => {
     if (!album) return;
-    setAlbumDraftSyndication(
-      album.syndication?.length ? album.syndication : DEFAULT_SYNDICATION,
-    );
+    
+    // Filtra solo le piattaforme valide (iOS e Android), escludendo Web/SmartTV legacy
+    const validPlatforms: Array<"iOS" | "Android"> = ["iOS", "Android"];
+    const existingSyndication = album.syndication?.filter(s => 
+      validPlatforms.includes(s.platform as "iOS" | "Android")
+    ) || [];
+    
+    // Assicura che entrambe le piattaforme siano presenti
+    const normalizedSyndication = validPlatforms.map(platform => {
+      const existing = existingSyndication.find(s => s.platform === platform);
+      return existing || { platform, isPublished: false, startDate: null, endDate: null };
+    });
+    
+    setAlbumDraftSyndication(normalizedSyndication);
     setDraftNome(album.nome);
     setDraftLogo((album as any).logo || "");
     setDraftLogoFileName((album as any).logoFileName || "");
