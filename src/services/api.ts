@@ -1,4 +1,4 @@
-// Base URL per le Azure Functions (da configurare in produzione)
+// Base URL per le Azure Functions
 const API_BASE_URL = "/api";
 
 export interface ApiResponse<T> {
@@ -8,26 +8,25 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Funzione di test - simula una chiamata API
- * In produzione, questa chiamerà le Azure Functions
+ * Chiama la Azure Function /api/test
  */
-export async function testApi(): Promise<ApiResponse<{ message: string }>> {
+export async function testApi(): Promise<ApiResponse<{ message: string; timestamp: string }>> {
   try {
-    // Simula una chiamata API (in produzione sarà: fetch(`${API_BASE_URL}/test`))
-    console.log("🚀 Chiamata API in corso...");
+    console.log("🚀 Chiamata Azure Function /api/test...");
     
-    // Simula un delay di rete
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const response = await fetch(`${API_BASE_URL}/test`);
     
-    const response = {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    console.log("✅ Risposta Azure Function:", data);
+    
+    return {
       success: true,
-      data: {
-        message: "API chiamata con successo! Timestamp: " + new Date().toISOString(),
-      },
+      data,
     };
-    
-    console.log("✅ Risposta API:", response);
-    return response;
   } catch (error) {
     console.error("❌ Errore API:", error);
     return {

@@ -1,0 +1,9 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Azure Functions API",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {}
+}
