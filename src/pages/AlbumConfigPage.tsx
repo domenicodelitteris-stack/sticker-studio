@@ -383,6 +383,35 @@ export default function AlbumConfigPage() {
                   )}
                 </div>
               </div>
+
+              {/* CTAHome */}
+              <div className="space-y-2">
+                <Label>CTAHome</Label>
+                <input ref={ctaHomeInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "ctaHome")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => ctaHomeInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftCtaHomeFileName || (draftCtaHome ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftCtaHome && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftCtaHome(""); setDraftCtaHomeFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftCtaHome ? (
+                    <img src={draftCtaHome} alt="CTAHome" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end pt-2">
