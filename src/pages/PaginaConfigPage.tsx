@@ -42,6 +42,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Figurina, Pagina, Album } from "@/types";
@@ -442,18 +443,19 @@ export default function PaginaConfigPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[140px]">Ordinamento</TableHead>
-                    <TableHead>Titolo</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Miniatura</TableHead>
-                    <TableHead className="text-right">Azioni</TableHead>
+                     <TableHead className="w-[140px]">Ordinamento</TableHead>
+                     <TableHead>Titolo</TableHead>
+                     <TableHead>Tipo</TableHead>
+                     <TableHead className="text-center">Doppia</TableHead>
+                     <TableHead>Miniatura</TableHead>
+                     <TableHead className="text-right">Azioni</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginaFigurine.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={5}
+                       <TableCell
+                         colSpan={6}
                         className="text-center text-muted-foreground py-8"
                       >
                         Nessuna figurina inserita
@@ -498,8 +500,11 @@ export default function PaginaConfigPage() {
                         <TableCell className="font-medium">
                           {fig.nome}
                         </TableCell>
-                        <TableCell>{fig.tipo}</TableCell>
-                        <TableCell>
+                         <TableCell>{fig.tipo}</TableCell>
+                         <TableCell className="text-center">
+                           <Checkbox checked={!!fig.doppia} disabled />
+                         </TableCell>
+                         <TableCell>
                           {fig.link ? (
                             <img
                               src={fig.link}

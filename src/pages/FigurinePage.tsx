@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Figurina, Pagina, Album } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -161,17 +162,18 @@ export default function FigurinePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[90px]">Miniatura</TableHead>
-                  <TableHead>Titolo</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Azioni</TableHead>
+                   <TableHead>Titolo</TableHead>
+                   <TableHead>Tipo</TableHead>
+                   <TableHead className="text-center">Doppia</TableHead>
+                   <TableHead className="text-right">Azioni</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
                 {filteredFigurine.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={4}
+                     <TableCell
+                       colSpan={5}
                       className="text-center text-muted-foreground py-8"
                     >
                       Nessuna figurina trovata
@@ -197,10 +199,13 @@ export default function FigurinePage() {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>{figurina.nome}</TableCell>
-                      <TableCell>{figurina.tipo}</TableCell>
+                       <TableCell>{figurina.nome}</TableCell>
+                       <TableCell>{figurina.tipo}</TableCell>
+                       <TableCell className="text-center">
+                         <Checkbox checked={!!figurina.doppia} disabled />
+                       </TableCell>
 
-                      <TableCell className="text-right">
+                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
