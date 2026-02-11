@@ -228,7 +228,6 @@ export default function AlbumCreatePage() {
 
                 <div className="space-y-2">
                   <Label>Immagine Default</Label>
-
                   <input
                     ref={immagineDefaultInputRef}
                     type="file"
@@ -236,91 +235,24 @@ export default function AlbumCreatePage() {
                     className="hidden"
                     onChange={handleImmagineDefaultChange}
                   />
-
                   <div className="flex items-center gap-3">
                     <Button type="button" onClick={openImmagineDefaultPicker}>
                       <Upload className="h-4 w-4 mr-2" />
                       Carica immagine
                     </Button>
-
                     <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                      {formData.immagineDefaultFileName ||
-                        "Nessun file selezionato"}
+                      {formData.immagineDefaultFileName || "Nessun file selezionato"}
                     </span>
-
                     {formData.immagineDefault && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleRemoveImmagineDefault}
-                      >
+                      <Button type="button" variant="outline" onClick={handleRemoveImmagineDefault}>
                         <X className="h-4 w-4 mr-2" />
                         Rimuovi
                       </Button>
                     )}
                   </div>
-
                   <div className="mt-2 border rounded-lg overflow-hidden w-32">
                     {formData.immagineDefault ? (
-                      <img
-                        src={formData.immagineDefault}
-                        alt="Immagine default"
-                        className="w-full aspect-square object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full aspect-square bg-muted flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>LogoAlbum</Label>
-
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleLogoChange}
-                  />
-
-                  <div className="flex items-center gap-3">
-                    <Button type="button" onClick={openLogoPicker}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Carica logo
-                    </Button>
-
-                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">
-                      {logoFileLabel}
-                    </span>
-
-                    {formData.logo && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleRemoveLogo}
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Rimuovi
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="mt-2 border rounded-lg overflow-hidden w-32">
-                    {formData.logo ? (
-                      <img
-                        src={formData.logo}
-                        alt="Logo album"
-                        className="w-full aspect-square object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
+                      <img src={formData.immagineDefault} alt="Immagine default" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <div className="w-full aspect-square bg-muted flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-muted-foreground" />
@@ -331,6 +263,41 @@ export default function AlbumCreatePage() {
               </div>
 
               <div className="grid grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                  <Label>LogoAlbum</Label>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                  />
+                  <div className="flex items-center gap-3">
+                    <Button type="button" onClick={openLogoPicker}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Carica logo
+                    </Button>
+                    <span className="text-sm text-muted-foreground truncate max-w-[260px]">
+                      {logoFileLabel}
+                    </span>
+                    {formData.logo && (
+                      <Button type="button" variant="outline" onClick={handleRemoveLogo}>
+                        <X className="h-4 w-4 mr-2" />
+                        Rimuovi
+                      </Button>
+                    )}
+                  </div>
+                  <div className="mt-2 border rounded-lg overflow-hidden w-32">
+                    {formData.logo ? (
+                      <img src={formData.logo} alt="Logo album" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label>CTAHome</Label>
                   <input
