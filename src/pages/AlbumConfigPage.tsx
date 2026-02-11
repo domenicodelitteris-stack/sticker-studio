@@ -91,9 +91,12 @@ export default function AlbumConfigPage() {
   const [draftLogoFileName, setDraftLogoFileName] = useState("");
   const [draftImmagineDefault, setDraftImmagineDefault] = useState("");
   const [draftImmagineDefaultFileName, setDraftImmagineDefaultFileName] = useState("");
+  const [draftCtaHome, setDraftCtaHome] = useState("");
+  const [draftCtaHomeFileName, setDraftCtaHomeFileName] = useState("");
   
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
+  const ctaHomeInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!album) return;
@@ -116,6 +119,8 @@ export default function AlbumConfigPage() {
     setDraftLogoFileName((album as any).logoFileName || "");
     setDraftImmagineDefault(album.immagineDefault || "");
     setDraftImmagineDefaultFileName("");
+    setDraftCtaHome((album as any).ctaHome || "");
+    setDraftCtaHomeFileName((album as any).ctaHomeFileName || "");
     setIsSaving(false);
     setJustSaved(false);
   }, [album?.id]);
@@ -150,7 +155,7 @@ export default function AlbumConfigPage() {
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "immagineDefault"
+    type: "logo" | "immagineDefault" | "ctaHome"
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -183,6 +188,9 @@ export default function AlbumConfigPage() {
       if (type === "logo") {
         setDraftLogo(result);
         setDraftLogoFileName(file.name);
+      } else if (type === "ctaHome") {
+        setDraftCtaHome(result);
+        setDraftCtaHomeFileName(file.name);
       } else {
         setDraftImmagineDefault(result);
         setDraftImmagineDefaultFileName(file.name);
@@ -213,6 +221,8 @@ export default function AlbumConfigPage() {
               ...a,
               nome: draftNome.trim(),
               immagineDefault: draftImmagineDefault || undefined,
+              ctaHome: draftCtaHome || undefined,
+              ctaHomeFileName: draftCtaHomeFileName || undefined,
               logo: draftLogo || undefined,
               logoFileName: draftLogoFileName || undefined,
               syndication: albumDraftSyndication,
@@ -290,7 +300,7 @@ export default function AlbumConfigPage() {
             <CardTitle>Dettagli Album</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-3 gap-6 items-start">
+            <div className="grid grid-cols-2 gap-6 items-start">
               {/* Nome */}
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome</Label>
@@ -389,6 +399,55 @@ export default function AlbumConfigPage() {
                     <img
                       src={draftImmagineDefault}
                       alt="Immagine default"
+                      className="w-full aspect-square object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* CTAHome */}
+              <div className="space-y-2">
+                <Label>CTAHome</Label>
+                <input
+                  ref={ctaHomeInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleImageUpload(e, "ctaHome")}
+                />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => ctaHomeInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftCtaHomeFileName || (draftCtaHome ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftCtaHome && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setDraftCtaHome(""); setDraftCtaHomeFileName(""); }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftCtaHome ? (
+                    <img
+                      src={draftCtaHome}
+                      alt="CTAHome"
                       className="w-full aspect-square object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";

@@ -17,6 +17,7 @@ export default function AlbumCreatePage() {
   const { toast } = useToast();
   const [album, setAlbum] = useLocalStorage<Album[]>("album", []);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const ctaHomeInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     nome: "",
@@ -26,6 +27,8 @@ export default function AlbumCreatePage() {
     syndication: [...DEFAULT_SYNDICATION] as SyndicationPlatform[],
     logo: "",
     logoFileName: "",
+    ctaHome: "",
+    ctaHomeFileName: "",
   });
 
   const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
@@ -162,6 +165,10 @@ export default function AlbumCreatePage() {
       ...(formData.logo
         ? ({ logoFileName: formData.logoFileName } as any)
         : {}),
+      ...(formData.ctaHome ? { ctaHome: formData.ctaHome } : {}),
+      ...(formData.ctaHome
+        ? ({ ctaHomeFileName: formData.ctaHomeFileName } as any)
+        : {}),
       createdAt: new Date(),
     } as any;
 
@@ -200,7 +207,7 @@ export default function AlbumCreatePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-6 items-start">
+              <div className="grid grid-cols-2 gap-6 items-start">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome</Label>
                   <Input
@@ -314,6 +321,60 @@ export default function AlbumCreatePage() {
                           (e.target as HTMLImageElement).style.display = "none";
                         }}
                       />
+                    ) : (
+                      <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                  <Label>CTAHome</Label>
+                  <input
+                    ref={ctaHomeInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (!file.type.startsWith("image/")) {
+                        toast({ title: "File non valido", description: "Seleziona un file immagine", variant: "destructive" });
+                        e.target.value = ""; return;
+                      }
+                      if (file.size / (1024 * 1024) > 2) {
+                        toast({ title: "Immagine troppo grande", description: "Scegli un'immagine più piccola di 2MB", variant: "destructive" });
+                        e.target.value = ""; return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        setFormData((prev) => ({ ...prev, ctaHome: reader.result as string, ctaHomeFileName: file.name }));
+                      };
+                      reader.readAsDataURL(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-3">
+                    <Button type="button" onClick={() => ctaHomeInputRef.current?.click()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Carica immagine
+                    </Button>
+                    <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+                      {formData.ctaHomeFileName || "Nessun file selezionato"}
+                    </span>
+                    {formData.ctaHome && (
+                      <Button type="button" variant="outline" onClick={() => setFormData((prev) => ({ ...prev, ctaHome: "", ctaHomeFileName: "" }))}>
+                        <X className="h-4 w-4 mr-2" />
+                        Rimuovi
+                      </Button>
+                    )}
+                  </div>
+                  <div className="mt-2 border rounded-lg overflow-hidden w-32">
+                    {formData.ctaHome ? (
+                      <img src={formData.ctaHome} alt="CTAHome" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <div className="w-full aspect-square bg-muted flex items-center justify-center">
                         <ImageIcon className="h-8 w-8 text-muted-foreground" />

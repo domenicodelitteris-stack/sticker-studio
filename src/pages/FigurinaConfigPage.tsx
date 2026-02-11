@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useToast } from "@/hooks/use-toast";
 import { Figurina, Album } from "@/types";
@@ -38,6 +39,7 @@ export default function FigurinaConfigPage() {
     link: (figurina as any)?.link || "",
     albumId: (figurina as any)?.albumId || preselectedAlbumId || "",
     fileName: (figurina as any)?.fileName || "",
+    doppia: (figurina as any)?.doppia || false,
   });
 
   const getNextNumero = (albumId: string) => {
@@ -136,6 +138,7 @@ export default function FigurinaConfigPage() {
         link: formData.link,
         albumId: formData.albumId,
         fileName: formData.fileName,
+        doppia: formData.doppia,
         createdAt: new Date(),
       };
 
@@ -155,6 +158,7 @@ export default function FigurinaConfigPage() {
                 link: formData.link,
                 albumId: formData.albumId,
                 fileName: formData.fileName,
+                doppia: formData.doppia,
               }
             : f,
         ),
@@ -317,6 +321,17 @@ export default function FigurinaConfigPage() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-3 pt-2">
+                <Checkbox
+                  id="doppia"
+                  checked={formData.doppia}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, doppia: !!checked })
+                  }
+                />
+                <Label htmlFor="doppia" className="cursor-pointer">Figurina Doppia</Label>
               </div>
 
               <div className="space-y-2">
