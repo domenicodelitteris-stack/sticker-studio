@@ -525,7 +525,7 @@ export default function PaginaConfigPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDeleteId(fig.id)}
+                            onClick={() => handleToggleFigurina(fig.id)}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
                             <Trash2 className="h-4 w-4" />
