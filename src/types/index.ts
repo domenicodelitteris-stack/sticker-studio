@@ -27,6 +27,7 @@ export interface Figurina {
   link: string;
   paginaId: string;
   ordine: number;
+  doppia: boolean;
   createdAt: Date;
 }
 
@@ -35,6 +36,7 @@ export interface Album {
   nome: string;
   anno: number;
   immagineDefault?: string;
+  ctaHome?: string;
   syndication: SyndicationPlatform[];
   createdAt: Date;
 }
