@@ -318,53 +318,6 @@ export default function AlbumConfigPage() {
                 />
               </div>
 
-              {/* Logo Album */}
-              <div className="space-y-2">
-                <Label>Logo Album</Label>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleImageUpload(e, "logo")}
-                />
-                <div className="flex items-center gap-3">
-                  <Button type="button" onClick={() => logoInputRef.current?.click()}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Carica
-                  </Button>
-                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
-                    {draftLogoFileName || (draftLogo ? "Logo salvato" : "Nessun file")}
-                  </span>
-                  {draftLogo && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { setDraftLogo(""); setDraftLogoFileName(""); }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                <div className="mt-2 border rounded-lg overflow-hidden w-20">
-                  {draftLogo ? (
-                    <img
-                      src={draftLogo}
-                      alt="Logo album"
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
-                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* Immagine Default */}
               <div className="space-y-2">
                 <Label>Immagine Default</Label>
@@ -384,26 +337,14 @@ export default function AlbumConfigPage() {
                     {draftImmagineDefaultFileName || (draftImmagineDefault ? "Immagine salvata" : "Nessun file")}
                   </span>
                   {draftImmagineDefault && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { setDraftImmagineDefault(""); setDraftImmagineDefaultFileName(""); }}
-                    >
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftImmagineDefault(""); setDraftImmagineDefaultFileName(""); }}>
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
                 <div className="mt-2 border rounded-lg overflow-hidden w-20">
                   {draftImmagineDefault ? (
-                    <img
-                      src={draftImmagineDefault}
-                      alt="Immagine default"
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
+                    <img src={draftImmagineDefault} alt="Immagine default" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
                     <div className="w-full aspect-square bg-muted flex items-center justify-center">
                       <ImageIcon className="h-6 w-6 text-muted-foreground" />
@@ -414,45 +355,27 @@ export default function AlbumConfigPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-6 items-start">
-              {/* CTAHome */}
+              {/* Logo Album */}
               <div className="space-y-2">
-                <Label>CTAHome</Label>
-                <input
-                  ref={ctaHomeInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleImageUpload(e, "ctaHome")}
-                />
+                <Label>Logo Album</Label>
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "logo")} />
                 <div className="flex items-center gap-3">
-                  <Button type="button" onClick={() => ctaHomeInputRef.current?.click()}>
+                  <Button type="button" onClick={() => logoInputRef.current?.click()}>
                     <Upload className="h-4 w-4 mr-2" />
                     Carica
                   </Button>
                   <span className="text-sm text-muted-foreground truncate max-w-[150px]">
-                    {draftCtaHomeFileName || (draftCtaHome ? "Immagine salvata" : "Nessun file")}
+                    {draftLogoFileName || (draftLogo ? "Logo salvato" : "Nessun file")}
                   </span>
-                  {draftCtaHome && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { setDraftCtaHome(""); setDraftCtaHomeFileName(""); }}
-                    >
+                  {draftLogo && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftLogo(""); setDraftLogoFileName(""); }}>
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
                 <div className="mt-2 border rounded-lg overflow-hidden w-20">
-                  {draftCtaHome ? (
-                    <img
-                      src={draftCtaHome}
-                      alt="CTAHome"
-                      className="w-full aspect-square object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
+                  {draftLogo ? (
+                    <img src={draftLogo} alt="Logo album" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
                     <div className="w-full aspect-square bg-muted flex items-center justify-center">
                       <ImageIcon className="h-6 w-6 text-muted-foreground" />
