@@ -242,23 +242,6 @@ export default function AlbumConfigPage() {
     });
   };
 
-  const saveAlbumSyndication = async () => {
-    if (!albumId) return;
-
-    setIsSaving(true);
-    setJustSaved(false);
-
-    setAlbums(
-      albums.map((a) =>
-        a.id === albumId ? { ...a, syndication: albumDraftSyndication } : a,
-      ),
-    );
-    await new Promise((r) => setTimeout(r, 450));
-
-    setIsSaving(false);
-    setJustSaved(true);
-    window.setTimeout(() => setJustSaved(false), 1200);
-  };
 
   if (!album) {
     return (
