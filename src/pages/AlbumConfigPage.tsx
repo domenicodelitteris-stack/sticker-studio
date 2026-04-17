@@ -446,6 +446,157 @@ export default function AlbumConfigPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Personaggio Landing */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Atterraggio</Label>
+                <input ref={personaggioLandingInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioLanding")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioLandingInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioLandingFileName || (draftPersonaggioLanding ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioLanding && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioLanding(""); setDraftPersonaggioLandingFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioLanding ? (
+                    <img src={draftPersonaggioLanding} alt="Personaggio Landing" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Personaggio Codice */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Inserimento Codice</Label>
+                <input ref={personaggioCodiceInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioCodice")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioCodiceInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioCodiceFileName || (draftPersonaggioCodice ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioCodice && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioCodice(""); setDraftPersonaggioCodiceFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioCodice ? (
+                    <img src={draftPersonaggioCodice} alt="Personaggio Codice" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Personaggio Scan */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Scan</Label>
+                <input ref={personaggioScanInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioScan")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioScanInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioScanFileName || (draftPersonaggioScan ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioScan && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioScan(""); setDraftPersonaggioScanFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioScan ? (
+                    <img src={draftPersonaggioScan} alt="Personaggio Scan" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Placeholder Figurina */}
+              <div className="space-y-2">
+                <Label>Placeholder Figurine Standard</Label>
+                <input ref={placeholderFigurinaInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "placeholderFigurina")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => placeholderFigurinaInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPlaceholderFigurinaFileName || (draftPlaceholderFigurina ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPlaceholderFigurina && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPlaceholderFigurina(""); setDraftPlaceholderFigurinaFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPlaceholderFigurina ? (
+                    <img src={draftPlaceholderFigurina} alt="Placeholder Figurina" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Banner Bottom Bar */}
+              <div className="space-y-2">
+                <Label>Banner sopra Bottom Bar</Label>
+                <input ref={bannerBottomBarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "bannerBottomBar")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => bannerBottomBarInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftBannerBottomBarFileName || (draftBannerBottomBar ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftBannerBottomBar && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftBannerBottomBar(""); setDraftBannerBottomBarFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-40">
+                  {draftBannerBottomBar ? (
+                    <img src={draftBannerBottomBar} alt="Banner Bottom Bar" className="w-full h-12 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full h-12 bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
           </CardContent>
         </Card>
 
