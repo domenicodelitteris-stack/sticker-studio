@@ -264,6 +264,16 @@ export default function AlbumConfigPage() {
               ctaHomeFileName: draftCtaHomeFileName || undefined,
               logo: draftLogo || undefined,
               logoFileName: draftLogoFileName || undefined,
+              personaggioLanding: draftPersonaggioLanding || undefined,
+              personaggioLandingFileName: draftPersonaggioLandingFileName || undefined,
+              personaggioCodice: draftPersonaggioCodice || undefined,
+              personaggioCodiceFileName: draftPersonaggioCodiceFileName || undefined,
+              personaggioScan: draftPersonaggioScan || undefined,
+              personaggioScanFileName: draftPersonaggioScanFileName || undefined,
+              placeholderFigurina: draftPlaceholderFigurina || undefined,
+              placeholderFigurinaFileName: draftPlaceholderFigurinaFileName || undefined,
+              bannerBottomBar: draftBannerBottomBar || undefined,
+              bannerBottomBarFileName: draftBannerBottomBarFileName || undefined,
               syndication: albumDraftSyndication,
             } as any
           : a
