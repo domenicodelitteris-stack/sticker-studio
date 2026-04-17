@@ -136,6 +136,16 @@ export default function AlbumConfigPage() {
     setDraftImmagineDefaultFileName("");
     setDraftCtaHome((album as any).ctaHome || "");
     setDraftCtaHomeFileName((album as any).ctaHomeFileName || "");
+    setDraftPersonaggioLanding((album as any).personaggioLanding || "");
+    setDraftPersonaggioLandingFileName((album as any).personaggioLandingFileName || "");
+    setDraftPersonaggioCodice((album as any).personaggioCodice || "");
+    setDraftPersonaggioCodiceFileName((album as any).personaggioCodiceFileName || "");
+    setDraftPersonaggioScan((album as any).personaggioScan || "");
+    setDraftPersonaggioScanFileName((album as any).personaggioScanFileName || "");
+    setDraftPlaceholderFigurina((album as any).placeholderFigurina || "");
+    setDraftPlaceholderFigurinaFileName((album as any).placeholderFigurinaFileName || "");
+    setDraftBannerBottomBar((album as any).bannerBottomBar || "");
+    setDraftBannerBottomBarFileName((album as any).bannerBottomBarFileName || "");
     setIsSaving(false);
     setJustSaved(false);
   }, [album?.id]);
