@@ -93,10 +93,25 @@ export default function AlbumConfigPage() {
   const [draftImmagineDefaultFileName, setDraftImmagineDefaultFileName] = useState("");
   const [draftCtaHome, setDraftCtaHome] = useState("");
   const [draftCtaHomeFileName, setDraftCtaHomeFileName] = useState("");
+  const [draftPersonaggioLanding, setDraftPersonaggioLanding] = useState("");
+  const [draftPersonaggioLandingFileName, setDraftPersonaggioLandingFileName] = useState("");
+  const [draftPersonaggioCodice, setDraftPersonaggioCodice] = useState("");
+  const [draftPersonaggioCodiceFileName, setDraftPersonaggioCodiceFileName] = useState("");
+  const [draftPersonaggioScan, setDraftPersonaggioScan] = useState("");
+  const [draftPersonaggioScanFileName, setDraftPersonaggioScanFileName] = useState("");
+  const [draftPlaceholderFigurina, setDraftPlaceholderFigurina] = useState("");
+  const [draftPlaceholderFigurinaFileName, setDraftPlaceholderFigurinaFileName] = useState("");
+  const [draftBannerBottomBar, setDraftBannerBottomBar] = useState("");
+  const [draftBannerBottomBarFileName, setDraftBannerBottomBarFileName] = useState("");
   
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
   const ctaHomeInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioLandingInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioCodiceInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioScanInputRef = useRef<HTMLInputElement | null>(null);
+  const placeholderFigurinaInputRef = useRef<HTMLInputElement | null>(null);
+  const bannerBottomBarInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!album) return;
@@ -121,6 +136,16 @@ export default function AlbumConfigPage() {
     setDraftImmagineDefaultFileName("");
     setDraftCtaHome((album as any).ctaHome || "");
     setDraftCtaHomeFileName((album as any).ctaHomeFileName || "");
+    setDraftPersonaggioLanding((album as any).personaggioLanding || "");
+    setDraftPersonaggioLandingFileName((album as any).personaggioLandingFileName || "");
+    setDraftPersonaggioCodice((album as any).personaggioCodice || "");
+    setDraftPersonaggioCodiceFileName((album as any).personaggioCodiceFileName || "");
+    setDraftPersonaggioScan((album as any).personaggioScan || "");
+    setDraftPersonaggioScanFileName((album as any).personaggioScanFileName || "");
+    setDraftPlaceholderFigurina((album as any).placeholderFigurina || "");
+    setDraftPlaceholderFigurinaFileName((album as any).placeholderFigurinaFileName || "");
+    setDraftBannerBottomBar((album as any).bannerBottomBar || "");
+    setDraftBannerBottomBarFileName((album as any).bannerBottomBarFileName || "");
     setIsSaving(false);
     setJustSaved(false);
   }, [album?.id]);
@@ -153,9 +178,30 @@ export default function AlbumConfigPage() {
     );
   };
 
+  type ImageFieldType = 
+    | "logo" 
+    | "immagineDefault" 
+    | "ctaHome"
+    | "personaggioLanding"
+    | "personaggioCodice"
+    | "personaggioScan"
+    | "placeholderFigurina"
+    | "bannerBottomBar";
+
+  const imageFieldSetters: Record<ImageFieldType, { setData: (v: string) => void; setName: (v: string) => void }> = {
+    logo: { setData: setDraftLogo, setName: setDraftLogoFileName },
+    immagineDefault: { setData: setDraftImmagineDefault, setName: setDraftImmagineDefaultFileName },
+    ctaHome: { setData: setDraftCtaHome, setName: setDraftCtaHomeFileName },
+    personaggioLanding: { setData: setDraftPersonaggioLanding, setName: setDraftPersonaggioLandingFileName },
+    personaggioCodice: { setData: setDraftPersonaggioCodice, setName: setDraftPersonaggioCodiceFileName },
+    personaggioScan: { setData: setDraftPersonaggioScan, setName: setDraftPersonaggioScanFileName },
+    placeholderFigurina: { setData: setDraftPlaceholderFigurina, setName: setDraftPlaceholderFigurinaFileName },
+    bannerBottomBar: { setData: setDraftBannerBottomBar, setName: setDraftBannerBottomBarFileName },
+  };
+
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "immagineDefault" | "ctaHome"
+    type: ImageFieldType
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -185,16 +231,9 @@ export default function AlbumConfigPage() {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      if (type === "logo") {
-        setDraftLogo(result);
-        setDraftLogoFileName(file.name);
-      } else if (type === "ctaHome") {
-        setDraftCtaHome(result);
-        setDraftCtaHomeFileName(file.name);
-      } else {
-        setDraftImmagineDefault(result);
-        setDraftImmagineDefaultFileName(file.name);
-      }
+      const setters = imageFieldSetters[type];
+      setters.setData(result);
+      setters.setName(file.name);
     };
     reader.onerror = () => {
       toast({
@@ -225,6 +264,16 @@ export default function AlbumConfigPage() {
               ctaHomeFileName: draftCtaHomeFileName || undefined,
               logo: draftLogo || undefined,
               logoFileName: draftLogoFileName || undefined,
+              personaggioLanding: draftPersonaggioLanding || undefined,
+              personaggioLandingFileName: draftPersonaggioLandingFileName || undefined,
+              personaggioCodice: draftPersonaggioCodice || undefined,
+              personaggioCodiceFileName: draftPersonaggioCodiceFileName || undefined,
+              personaggioScan: draftPersonaggioScan || undefined,
+              personaggioScanFileName: draftPersonaggioScanFileName || undefined,
+              placeholderFigurina: draftPlaceholderFigurina || undefined,
+              placeholderFigurinaFileName: draftPlaceholderFigurinaFileName || undefined,
+              bannerBottomBar: draftBannerBottomBar || undefined,
+              bannerBottomBarFileName: draftBannerBottomBarFileName || undefined,
               syndication: albumDraftSyndication,
             } as any
           : a
@@ -390,6 +439,157 @@ export default function AlbumConfigPage() {
                     <img src={draftCtaHome} alt="CTAHome" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   ) : (
                     <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Personaggio Landing */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Atterraggio</Label>
+                <input ref={personaggioLandingInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioLanding")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioLandingInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioLandingFileName || (draftPersonaggioLanding ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioLanding && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioLanding(""); setDraftPersonaggioLandingFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioLanding ? (
+                    <img src={draftPersonaggioLanding} alt="Personaggio Landing" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Personaggio Codice */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Inserimento Codice</Label>
+                <input ref={personaggioCodiceInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioCodice")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioCodiceInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioCodiceFileName || (draftPersonaggioCodice ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioCodice && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioCodice(""); setDraftPersonaggioCodiceFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioCodice ? (
+                    <img src={draftPersonaggioCodice} alt="Personaggio Codice" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Personaggio Scan */}
+              <div className="space-y-2">
+                <Label>Personaggio - Pagina Scan</Label>
+                <input ref={personaggioScanInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "personaggioScan")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => personaggioScanInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPersonaggioScanFileName || (draftPersonaggioScan ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPersonaggioScan && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPersonaggioScan(""); setDraftPersonaggioScanFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPersonaggioScan ? (
+                    <img src={draftPersonaggioScan} alt="Personaggio Scan" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Placeholder Figurina */}
+              <div className="space-y-2">
+                <Label>Placeholder Figurine Standard</Label>
+                <input ref={placeholderFigurinaInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "placeholderFigurina")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => placeholderFigurinaInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftPlaceholderFigurinaFileName || (draftPlaceholderFigurina ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftPlaceholderFigurina && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftPlaceholderFigurina(""); setDraftPlaceholderFigurinaFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-20">
+                  {draftPlaceholderFigurina ? (
+                    <img src={draftPlaceholderFigurina} alt="Placeholder Figurina" className="w-full aspect-square object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full aspect-square bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Banner Bottom Bar */}
+              <div className="space-y-2">
+                <Label>Banner sopra Bottom Bar</Label>
+                <input ref={bannerBottomBarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "bannerBottomBar")} />
+                <div className="flex items-center gap-3">
+                  <Button type="button" onClick={() => bannerBottomBarInputRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carica
+                  </Button>
+                  <span className="text-sm text-muted-foreground truncate max-w-[150px]">
+                    {draftBannerBottomBarFileName || (draftBannerBottomBar ? "Immagine salvata" : "Nessun file")}
+                  </span>
+                  {draftBannerBottomBar && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => { setDraftBannerBottomBar(""); setDraftBannerBottomBarFileName(""); }}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 border rounded-lg overflow-hidden w-40">
+                  {draftBannerBottomBar ? (
+                    <img src={draftBannerBottomBar} alt="Banner Bottom Bar" className="w-full h-12 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : (
+                    <div className="w-full h-12 bg-muted flex items-center justify-center">
                       <ImageIcon className="h-6 w-6 text-muted-foreground" />
                     </div>
                   )}

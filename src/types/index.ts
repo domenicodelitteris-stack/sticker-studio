@@ -37,6 +37,19 @@ export interface Album {
   anno: number;
   immagineDefault?: string;
   ctaHome?: string;
+  ctaHomeFileName?: string;
+  logo?: string;
+  logoFileName?: string;
+  personaggioLanding?: string;
+  personaggioLandingFileName?: string;
+  personaggioCodice?: string;
+  personaggioCodiceFileName?: string;
+  personaggioScan?: string;
+  personaggioScanFileName?: string;
+  placeholderFigurina?: string;
+  placeholderFigurinaFileName?: string;
+  bannerBottomBar?: string;
+  bannerBottomBarFileName?: string;
   syndication: SyndicationPlatform[];
   createdAt: Date;
 }
