@@ -178,9 +178,30 @@ export default function AlbumConfigPage() {
     );
   };
 
+  type ImageFieldType = 
+    | "logo" 
+    | "immagineDefault" 
+    | "ctaHome"
+    | "personaggioLanding"
+    | "personaggioCodice"
+    | "personaggioScan"
+    | "placeholderFigurina"
+    | "bannerBottomBar";
+
+  const imageFieldSetters: Record<ImageFieldType, { setData: (v: string) => void; setName: (v: string) => void }> = {
+    logo: { setData: setDraftLogo, setName: setDraftLogoFileName },
+    immagineDefault: { setData: setDraftImmagineDefault, setName: setDraftImmagineDefaultFileName },
+    ctaHome: { setData: setDraftCtaHome, setName: setDraftCtaHomeFileName },
+    personaggioLanding: { setData: setDraftPersonaggioLanding, setName: setDraftPersonaggioLandingFileName },
+    personaggioCodice: { setData: setDraftPersonaggioCodice, setName: setDraftPersonaggioCodiceFileName },
+    personaggioScan: { setData: setDraftPersonaggioScan, setName: setDraftPersonaggioScanFileName },
+    placeholderFigurina: { setData: setDraftPlaceholderFigurina, setName: setDraftPlaceholderFigurinaFileName },
+    bannerBottomBar: { setData: setDraftBannerBottomBar, setName: setDraftBannerBottomBarFileName },
+  };
+
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "logo" | "immagineDefault" | "ctaHome"
+    type: ImageFieldType
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -210,16 +231,9 @@ export default function AlbumConfigPage() {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      if (type === "logo") {
-        setDraftLogo(result);
-        setDraftLogoFileName(file.name);
-      } else if (type === "ctaHome") {
-        setDraftCtaHome(result);
-        setDraftCtaHomeFileName(file.name);
-      } else {
-        setDraftImmagineDefault(result);
-        setDraftImmagineDefaultFileName(file.name);
-      }
+      const setters = imageFieldSetters[type];
+      setters.setData(result);
+      setters.setName(file.name);
     };
     reader.onerror = () => {
       toast({
