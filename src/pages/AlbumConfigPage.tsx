@@ -93,10 +93,25 @@ export default function AlbumConfigPage() {
   const [draftImmagineDefaultFileName, setDraftImmagineDefaultFileName] = useState("");
   const [draftCtaHome, setDraftCtaHome] = useState("");
   const [draftCtaHomeFileName, setDraftCtaHomeFileName] = useState("");
+  const [draftPersonaggioLanding, setDraftPersonaggioLanding] = useState("");
+  const [draftPersonaggioLandingFileName, setDraftPersonaggioLandingFileName] = useState("");
+  const [draftPersonaggioCodice, setDraftPersonaggioCodice] = useState("");
+  const [draftPersonaggioCodiceFileName, setDraftPersonaggioCodiceFileName] = useState("");
+  const [draftPersonaggioScan, setDraftPersonaggioScan] = useState("");
+  const [draftPersonaggioScanFileName, setDraftPersonaggioScanFileName] = useState("");
+  const [draftPlaceholderFigurina, setDraftPlaceholderFigurina] = useState("");
+  const [draftPlaceholderFigurinaFileName, setDraftPlaceholderFigurinaFileName] = useState("");
+  const [draftBannerBottomBar, setDraftBannerBottomBar] = useState("");
+  const [draftBannerBottomBarFileName, setDraftBannerBottomBarFileName] = useState("");
   
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const immagineDefaultInputRef = useRef<HTMLInputElement | null>(null);
   const ctaHomeInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioLandingInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioCodiceInputRef = useRef<HTMLInputElement | null>(null);
+  const personaggioScanInputRef = useRef<HTMLInputElement | null>(null);
+  const placeholderFigurinaInputRef = useRef<HTMLInputElement | null>(null);
+  const bannerBottomBarInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!album) return;
