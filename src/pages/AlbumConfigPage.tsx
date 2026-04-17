@@ -559,26 +559,27 @@ export default function AlbumConfigPage() {
               syndication={albumDraftSyndication}
               onChange={setAlbumDraftSyndication}
             />
-            <div className="flex justify-end pt-2">
-              <Button onClick={saveAlbumDetails} disabled={isSaving || !draftNome.trim()}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Salvataggio...
-                  </>
-                ) : justSaved ? (
-                  <>Salvato ✓</>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Salva Tutto
-                  </>
-                )}
-              </Button>
-            </div>
           </CardContent>
         </Card>
+        <div className="flex justify-end gap-4 pt-2">
+          <Button variant="outline" onClick={() => navigate("/album")}>
+            Annulla
+          </Button>
+          <Button onClick={saveAlbumDetails} disabled={isSaving || !draftNome.trim()}>
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Salvataggio...
+              </>
+            ) : justSaved ? (
+              <>Salvato ✓</>
+            ) : (
+              <>Salva Modifiche</>
+            )}
+          </Button>
+        </div>
       </div>
+
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
